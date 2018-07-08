@@ -4,6 +4,7 @@ using Nord.Compiler.Lexer;
 using Nord.Compiler.Parser;
 using Superpower;
 using Superpower.Model;
+using YamlDotNet.Serialization;
 
 namespace Nord.Demo
 {
@@ -11,22 +12,27 @@ namespace Nord.Demo
     {
         static void Main(string[] args)
         {
-            var code = "'Hello world'";
-            object value;
-            string error;
-            Position errorPosition;
-            var result = Parsers.TryParse(code, out value, out error, out errorPosition);
-
-            if (String.IsNullOrEmpty(error))
+            Console.Write("nord> ");
+            var line = Console.ReadLine();
+            while (line != null)
             {
-                Console.WriteLine(JsonConvert.SerializeObject(value));
+                if (!string.IsNullOrWhiteSpace(line))
+                {
+                    if (Parsers.TryParse(line, out var value, out var error, out var errorPosition))
+                    {
+                        var serializer = new SerializerBuilder().Build();
+                        Console.WriteLine(serializer.Serialize(value));
+                    }
+                    else
+                    {
+                        Console.WriteLine($"     {new string(' ', errorPosition.Column)}^");
+                        Console.WriteLine(error);
+                    }
+                }
+                
+                Console.Write("nord> ");
+                line = Console.ReadLine();
             }
-            else
-            {
-                Console.WriteLine("{0}", error);
-            }
-
-            Console.ReadLine();
         }
     }
 }

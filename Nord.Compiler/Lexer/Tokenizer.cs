@@ -7,46 +7,46 @@ using Superpower.Parsers;
 
 namespace Nord.Compiler.Lexer
 {
-    public class NordTokenizer: Tokenizer<NordTokenType>
+    public class NordTokenizer: Tokenizer<TokenType>
     {
-        static readonly Dictionary<char, NordTokenType> _operators = new Dictionary<char, NordTokenType>
+        static readonly Dictionary<char, TokenType> _operators = new Dictionary<char, TokenType>
         {
-            ['='] = NordTokenType.EqualsOperator,
-            ['+'] = NordTokenType.PlusOperator,
-            ['-'] = NordTokenType.MinusOperator,
-            ['*'] = NordTokenType.StarOperator,
-            ['/'] = NordTokenType.ForwardSlashOperator,
-            ['\\'] = NordTokenType.BackwardSlashOperator,
-            ['?'] = NordTokenType.QuestionMarkOperator,
-            ['!'] = NordTokenType.ExclamationMarkOperator,
-            ['.'] = NordTokenType.DotOperator,
-            ['('] = NordTokenType.OpenParen,
-            [')'] = NordTokenType.CloseParen,
-            ['{'] = NordTokenType.OpenCurly,
-            ['}'] = NordTokenType.CloseCurly,
-            ['['] = NordTokenType.OpenSquare,
-            [']'] = NordTokenType.CloseSquare,
-            ['<'] = NordTokenType.OpenAngle,
-            ['>'] = NordTokenType.CloseAngle,
-            [','] = NordTokenType.Comma,
-            [';'] = NordTokenType.Semicolon,
-            [':'] = NordTokenType.Colon,
+            ['='] = TokenType.EqualsOperator,
+            ['+'] = TokenType.PlusOperator,
+            ['-'] = TokenType.MinusOperator,
+            ['*'] = TokenType.StarOperator,
+            ['/'] = TokenType.ForwardSlashOperator,
+            ['\\'] = TokenType.BackwardSlashOperator,
+            ['?'] = TokenType.QuestionMarkOperator,
+            ['!'] = TokenType.ExclamationMarkOperator,
+            ['.'] = TokenType.DotOperator,
+            ['('] = TokenType.OpenParen,
+            [')'] = TokenType.CloseParen,
+            ['{'] = TokenType.OpenCurly,
+            ['}'] = TokenType.CloseCurly,
+            ['['] = TokenType.OpenSquare,
+            [']'] = TokenType.CloseSquare,
+            ['<'] = TokenType.OpenAngle,
+            ['>'] = TokenType.CloseAngle,
+            [','] = TokenType.Comma,
+            [';'] = TokenType.Semicolon,
+            [':'] = TokenType.Colon,
         };
 
-        static readonly Dictionary<string, NordTokenType> _keywords = new Dictionary<string, NordTokenType>
+        static readonly Dictionary<string, TokenType> _keywords = new Dictionary<string, TokenType>
         {
-            ["let"] = NordTokenType.LetKeyword,
-            ["fn"] = NordTokenType.FnKeyword,
-            ["end"] = NordTokenType.EndKeyword,
-            ["if"] = NordTokenType.IfKeyword,
-            ["else"] = NordTokenType.ElseKeyword,
-            ["loop"] = NordTokenType.LoopKeyword,
-            ["return"] = NordTokenType.ReturnKeyword,
-            ["break"] = NordTokenType.BreakKeyword,
-            ["continue"] = NordTokenType.ContinueKeyword,
-            ["when"] = NordTokenType.WhenKeyword,
-            ["in"] = NordTokenType.InKeyword,
-            ["new"] = NordTokenType.NewKeyword
+            ["let"] = TokenType.LetKeyword,
+            ["fn"] = TokenType.FnKeyword,
+            ["end"] = TokenType.EndKeyword,
+            ["if"] = TokenType.IfKeyword,
+            ["else"] = TokenType.ElseKeyword,
+            ["loop"] = TokenType.LoopKeyword,
+            ["return"] = TokenType.ReturnKeyword,
+            ["break"] = TokenType.BreakKeyword,
+            ["continue"] = TokenType.ContinueKeyword,
+            ["when"] = TokenType.WhenKeyword,
+            ["in"] = TokenType.InKeyword,
+            ["new"] = TokenType.NewKeyword
         };
 
         public static TextParser<double> DoubleTokenizer { get; } =
@@ -82,7 +82,7 @@ namespace Nord.Compiler.Lexer
             from close in Character.EqualTo('\'')
             select new string(value);
 
-        protected override IEnumerable<Result<NordTokenType>> Tokenize(TextSpan span)
+        protected override IEnumerable<Result<TokenType>> Tokenize(TextSpan span)
         {
             var next = SkipWhiteSpace(span);
             if (!next.HasValue)
@@ -90,22 +90,22 @@ namespace Nord.Compiler.Lexer
 
             do
             {
-                NordTokenType charTokenType;
+                TokenType charTokenTye;
 
                 if (char.IsDigit(next.Value))
                 {
                     var result = DoubleTokenizer(next.Location);
                     next = result.Remainder.ConsumeChar();
-                    yield return Result.Value(NordTokenType.Double, result.Location, result.Remainder);
+                    yield return Result.Value(TokenType.Double, result.Location, result.Remainder);
                 }
                 else if (next.Value == '\'')
                 {
                     var str = StringTokenizer(next.Location);
                     if (!str.HasValue)
-                        yield return Result.CastEmpty<string, NordTokenType>(str);
+                        yield return Result.CastEmpty<string, TokenType>(str);
 
                     next = str.Remainder.ConsumeChar();
-                    yield return Result.Value(NordTokenType.String, str.Location, str.Remainder);
+                    yield return Result.Value(TokenType.String, str.Location, str.Remainder);
                 }
                 else if (char.IsLetter(next.Value) || next.Value == '_')
                 {
@@ -116,31 +116,31 @@ namespace Nord.Compiler.Lexer
                     }
                     while (next.HasValue && (char.IsLetterOrDigit(next.Value) || next.Value == '_'));
 
-                    NordTokenType keyword;
+                    TokenType keyword;
                     if (TryGetKeyword(beginIdentifier.Until(next.Location), out keyword))
                     {
                         yield return Result.Value(keyword, beginIdentifier, next.Location);
                     }
                     else
                     {
-                        yield return Result.Value(NordTokenType.Identifier, beginIdentifier, next.Location);
+                        yield return Result.Value(TokenType.Identifier, beginIdentifier, next.Location);
                     }
                 }
-                else if (_operators.TryGetValue(next.Value, out charTokenType))
+                else if (_operators.TryGetValue(next.Value, out charTokenTye))
                 {
-                    yield return Result.Value(charTokenType, next.Location, next.Remainder);
+                    yield return Result.Value(charTokenTye, next.Location, next.Remainder);
                     next = next.Remainder.ConsumeChar();
                 }
                 else
                 {
-                    yield return Result.Empty<NordTokenType>(next.Location, new[] { "number", "operator" });
+                    yield return Result.Empty<TokenType>(next.Location, new[] { "number", "operator" });
                 }
 
                 next = SkipWhiteSpace(next.Location);
             } while (next.HasValue);
         }
 
-        static bool TryGetKeyword(TextSpan span, out NordTokenType keyword)
+        static bool TryGetKeyword(TextSpan span, out TokenType keyword)
         {
             foreach (var kw in _keywords)
             {
@@ -151,7 +151,7 @@ namespace Nord.Compiler.Lexer
                 }
             }
 
-            keyword = NordTokenType.None;
+            keyword = TokenType.None;
             return false;
         }
     }

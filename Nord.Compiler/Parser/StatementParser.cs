@@ -10,11 +10,19 @@ namespace Nord.Compiler.Parser
 {
     public class StatementParser
     {
-        public static TokenListParser<NordTokenType, AstStatementExpressionNode> ExpressionStatement { get; } =
+        public static TokenListParser<TokenType, AstStatementExpressionNode> ExpressionStatement { get; } =
             from expression in ExpressionParser.Expression
             select new AstStatementExpressionNode(expression);
 
-        public static TokenListParser<NordTokenType, AstStatementNode> Statement { get; } =
-            ExpressionStatement.Select(e => (AstStatementNode)e);
+        public static TokenListParser<TokenType, AstStatementLoopNode> LoopStatement { get; } =
+            from loopKeyword in Token.EqualTo(TokenType.LoopKeyword)
+            from curlyOpen in Token.EqualTo(TokenType.OpenCurly)
+            from body in Parsers.StatementsBlock
+            from curlyClose in Token.EqualTo(TokenType.CloseCurly)
+            select new AstStatementLoopNode(body);
+
+        public static TokenListParser<TokenType, AstStatementNode> Statement { get; } =
+            LoopStatement.Select(s => (AstStatementNode)s)
+                .Or(ExpressionStatement.Select(e => (AstStatementNode)e));
     }
 }

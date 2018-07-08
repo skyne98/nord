@@ -1,11 +1,18 @@
 ﻿using System;
+using Nord.Compiler.Ast;
 using Nord.Compiler.Lexer;
 using Nord.Compiler.Parser;
 using Superpower;
 using Superpower.Model;
+using Superpower.Parsers;
 
 public class Parsers
 {
+    public static TokenListParser<TokenType, AstStatementNode[]> StatementsBlock { get; } =
+        from statements in Parse.Ref(() => StatementParser.Statement)
+            .ManyDelimitedBy(Token.EqualTo(TokenType.Semicolon).OptionalOrDefault())
+        select statements;
+
     public static bool TryParse(string code, out object value, out string error, out Position errorPosition)
     {
         var tokenizer = new NordTokenizer();

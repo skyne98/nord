@@ -5,7 +5,7 @@ using Superpower.Display;
 
 namespace Nord.Compiler.Lexer
 {
-    public enum NordTokenType
+    public enum TokenType
     {
         None,
 
