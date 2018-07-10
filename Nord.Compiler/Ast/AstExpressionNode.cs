@@ -20,6 +20,16 @@ namespace Nord.Compiler.Ast
         public V Value { get; private set; }
     }
 
+    public class AstExpressionIdentifierLiteralNode : AstExpressionNode
+    {
+        public AstExpressionIdentifierLiteralNode(string name)
+        {
+            Name = name;
+        }
+
+        public string Name { get; private set; }
+    }
+
     public class AstExpressionLetNode : AstExpressionNode
     {
         public AstExpressionLetNode(AstTypeDeclaratorNode declarator, AstExpressionNode value)
@@ -56,5 +66,29 @@ namespace Nord.Compiler.Ast
 
         public TokenType Operator { get; private set; }
         public AstExpressionNode Value { get; private set; }
+    }
+
+    public class AstExpressionFunctionCallNode : AstExpressionNode
+    {
+        public AstExpressionFunctionCallNode(AstExpressionNode function, AstExpressionNode[] parameters)
+        {
+            Function = function;
+            Parameters = parameters;
+        }
+
+        public AstExpressionNode Function { get; private set; }
+        public AstExpressionNode[] Parameters { get; private set; }
+    }
+
+    public class AstExpressionIndexedAccessNode : AstExpressionNode
+    {
+        public AstExpressionIndexedAccessNode(AstExpressionNode subject, AstExpressionNode index)
+        {
+            Subject = subject;
+            Index = index;
+        }
+
+        public AstExpressionNode Subject { get; private set; }
+        public AstExpressionNode Index { get; private set; }
     }
 }

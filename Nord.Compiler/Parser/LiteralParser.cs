@@ -17,5 +17,9 @@ namespace Nord.Compiler.Parser
         public static TokenListParser<TokenType, AstExpressionLiteralNode<double>> Double { get; } =
             from token in Token.EqualTo(TokenType.Double)
             select new AstExpressionLiteralNode<double>(double.Parse(token.Span.ToStringValue()));
+
+        public static TokenListParser<TokenType, AstExpressionIdentifierLiteralNode> Identifier { get; } =
+            from name in Token.EqualTo(TokenType.Identifier)
+            select new AstExpressionIdentifierLiteralNode(name.Span.ToStringValue());
     }
 }

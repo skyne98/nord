@@ -19,6 +19,8 @@ namespace Nord.Compiler.Lexer
             ['\\'] = TokenType.BackwardSlashOperator,
             ['?'] = TokenType.QuestionMarkOperator,
             ['!'] = TokenType.ExclamationMarkOperator,
+            ['|'] = TokenType.PipeOperator,
+            ['&'] = TokenType.AndOperator,
             ['.'] = TokenType.DotOperator,
             ['('] = TokenType.OpenParen,
             [')'] = TokenType.CloseParen,
@@ -30,7 +32,7 @@ namespace Nord.Compiler.Lexer
             ['>'] = TokenType.CloseAngle,
             [','] = TokenType.Comma,
             [';'] = TokenType.Semicolon,
-            [':'] = TokenType.Colon,
+            [':'] = TokenType.Colon
         };
 
         static readonly Dictionary<string, TokenType> _keywords = new Dictionary<string, TokenType>
@@ -46,7 +48,8 @@ namespace Nord.Compiler.Lexer
             ["continue"] = TokenType.ContinueKeyword,
             ["when"] = TokenType.WhenKeyword,
             ["in"] = TokenType.InKeyword,
-            ["new"] = TokenType.NewKeyword
+            ["new"] = TokenType.NewKeyword,
+            ["as"] = TokenType.AsKeyword,
         };
 
         public static TextParser<double> DoubleTokenizer { get; } =

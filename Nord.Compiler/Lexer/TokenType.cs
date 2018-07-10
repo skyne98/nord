@@ -44,6 +44,8 @@ namespace Nord.Compiler.Lexer
         InKeyword,
         [Token(Category = "keyword", Example = "new")]
         NewKeyword,
+        [Token(Category = "keyword", Example = "as")]
+        AsKeyword,
 
         // Operators
         [Token(Category = "operator", Example = "=")]
@@ -62,6 +64,10 @@ namespace Nord.Compiler.Lexer
         QuestionMarkOperator,
         [Token(Category = "operator", Example = "!")]
         ExclamationMarkOperator,
+        [Token(Category = "operator", Example = "|")]
+        PipeOperator,
+        [Token(Category = "operator", Example = "&")]
+        AndOperator,
         [Token(Category = "operator", Example = ".")]
         DotOperator,
 
