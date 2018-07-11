@@ -81,5 +81,10 @@ namespace Nord.Compiler.Parser
         public static TokenListParser<TokenType, string> CastOperator{ get; } =
             from asKeyword in Token.EqualTo(TokenType.AsKeyword)
             select "as";
+        
+        // !
+        public static TokenListParser<TokenType, string> BangOperator { get; } =
+            from exclamationMarkKeyword in Token.EqualTo(TokenType.ExclamationMarkOperator)
+            select "!";
     }
 }

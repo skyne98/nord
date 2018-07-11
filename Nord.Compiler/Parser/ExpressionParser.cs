@@ -23,6 +23,7 @@ namespace Nord.Compiler.Parser
             from value in ExpressionParser.Expression
             select new AstExpressionLetNode(declarator, value);
 
+        // 0 precedence
         public static TokenListParser<TokenType, AstExpressionNode> Terminal { get; } =
             (
                 from openParen in Token.EqualTo(TokenType.OpenParen)
@@ -32,25 +33,86 @@ namespace Nord.Compiler.Parser
             )
             .Or(Literal);
         
-        public static TokenListParser<TokenType, AstExpressionFunctionCallNode> FunctionCall { get; } =
-            from function in Terminal
+        // 1 precedence
+        public static TokenListParser<TokenType, AstExpressionCallNode> Call { get; } =
+            from function in Parse.Ref(() => Postfix)
             from openParen in Token.EqualTo(TokenType.OpenParen)
             from parameters in (
                 from expressions in Parse.Ref(() => Expression).ManyDelimitedBy(Token.EqualTo(TokenType.Comma))
                 select expressions
             )
             from closeParen in Token.EqualTo(TokenType.CloseParen)
-            select new AstExpressionFunctionCallNode(function, parameters);
+            select new AstExpressionCallNode(function, parameters);
 
-        public static TokenListParser<TokenType, AstExpressionIndexedAccessNode> IndexedAccess { get; } =
-            from subject in Terminal
+        public static TokenListParser<TokenType, AstExpressionMemberNode> Member { get; } =
+            from subject in Parse.Ref(() => Postfix)
             from openSquare in Token.EqualTo(TokenType.OpenSquare)
             from index in Parse.Ref(() => Expression)
             from closeSquare in Token.EqualTo(TokenType.CloseSquare)
-            select new AstExpressionIndexedAccessNode(subject, index);
+            select new AstExpressionMemberNode(subject, index);
 
+        public static TokenListParser<TokenType, AstExpressionPropertyAccessNode> PropertyAccess { get; } =
+            from subject in Parse.Ref(() => Postfix)
+            from dot in Token.EqualTo(TokenType.DotOperator)
+            from property in Token.EqualTo(TokenType.Identifier)
+            select new AstExpressionPropertyAccessNode(subject, property.ToStringValue());
+            
+        public static TokenListParser<TokenType, AstExpressionNode> Postfix { get; } =
+            Call.Select(c => (AstExpressionNode) c)
+                .Or(Member.Select(m => (AstExpressionNode) m))
+                .Or(PropertyAccess.Select(p => (AstExpressionNode) p))
+                .Or(Terminal);
+        
+        // 2 precedence
+        public static TokenListParser<TokenType, AstExpressionNode> Unary { get; } =
+            (from op in OperatorParser.BangOperator
+                    .Or(OperatorParser.PlusOperator)
+                from unary in Parse.Ref(() => Unary)
+                select new AstExpressionUnaryNode(op, unary))
+            .Select(u => (AstExpressionNode) u)
+            .Or(Postfix);
+        
+        // 3 precedence
+        public static TokenListParser<TokenType, AstExpressionNode> Multiplication { get; } =
+            Parse.Chain(OperatorParser.MultiplyOperator.Or(OperatorParser.DivideOperator), Unary, (op, left, right) =>
+                new AstExpressionBinaryNode(op, left, right)    
+            );
+        
+        // 4 precedence
+        public static TokenListParser<TokenType, AstExpressionNode> Addition { get; } =
+            Parse.Chain(OperatorParser.PlusOperator.Or(OperatorParser.MinusOperator), Multiplication, (op, left, right) =>
+                new AstExpressionBinaryNode(op, left, right)
+            );
+
+        // 5 precedence
+        public static TokenListParser<TokenType, AstExpressionAsNode> As { get; } =
+            from comparison in Parse.Ref(() => Comparison)
+            from asKeyword in OperatorParser.CastOperator
+            from type in TypeParser.TypeAnnotation
+            select new AstExpressionAsNode(comparison, type);
+
+        public static TokenListParser<TokenType, AstExpressionNode> LessMoreThanEquals { get; } =
+            Parse.Chain(OperatorParser.LessThanOperator
+                    .Or(OperatorParser.LessThanEqualsOperator)
+                    .Or(OperatorParser.MoreThanOperator)
+                    .Or(OperatorParser.MoreThanEqualsOperator), Parse.Ref(() => Comparison), (op, left, right) => 
+                new AstExpressionBinaryNode(op, left, right)
+            );
+
+        public static TokenListParser<TokenType, AstExpressionNode> Comparison { get; } =
+            As.Select(a => (AstExpressionNode) a)
+                .Or(LessMoreThanEquals)
+                .Or(Addition);
+        
+        // 6 precedence
+        public static TokenListParser<TokenType, AstExpressionNode> Equality { get; } =
+            Parse.Chain(OperatorParser.EqualsOperator
+                    .Or(OperatorParser.NotEqualsOperator), Parse.Ref(() => Equality), (op, left, right) => 
+                    new AstExpressionBinaryNode(op, left, right)
+            ).Or(Comparison);
+            
         public static TokenListParser<TokenType, AstExpressionNode> Expression { get; } =
             Let.Select(e => (AstExpressionNode)e)
-                .Or(Literal);
+                .Or(Equality);
     }
 }
