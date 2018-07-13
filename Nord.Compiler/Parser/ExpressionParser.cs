@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Nord.Compiler.Ast;
 using Nord.Compiler.Lexer;
@@ -34,34 +35,37 @@ namespace Nord.Compiler.Parser
             .Or(Literal);
         
         // 1 precedence
-        public static TokenListParser<TokenType, AstExpressionCallNode> Call { get; } =
-            from function in Parse.Ref(() => Postfix)
-            from openParen in Token.EqualTo(TokenType.OpenParen)
-            from parameters in (
-                from expressions in Parse.Ref(() => Expression).ManyDelimitedBy(Token.EqualTo(TokenType.Comma))
-                select expressions
-            )
-            from closeParen in Token.EqualTo(TokenType.CloseParen)
-            select new AstExpressionCallNode(function, parameters);
+        public static Func<AstExpressionNode, TokenListParser<TokenType, AstExpressionCallNode>> CallTail { get; } =
+            s =>    
+                from openParen in Token.EqualTo(TokenType.OpenParen)
+                from arguments in (
+                    from expressions in Parse.Ref(() => Expression).ManyDelimitedBy(Token.EqualTo(TokenType.Comma))
+                    select expressions
+                )
+                from closeParen in Token.EqualTo(TokenType.CloseParen)
+                select new AstExpressionCallNode(s, arguments);
 
-        public static TokenListParser<TokenType, AstExpressionMemberNode> Member { get; } =
-            from subject in Parse.Ref(() => Postfix)
-            from openSquare in Token.EqualTo(TokenType.OpenSquare)
-            from index in Parse.Ref(() => Expression)
-            from closeSquare in Token.EqualTo(TokenType.CloseSquare)
-            select new AstExpressionMemberNode(subject, index);
+        public static Func<AstExpressionNode, TokenListParser<TokenType, AstExpressionMemberNode>> MemberTail { get; } =
+            s =>
+                from openSquare in Token.EqualTo(TokenType.OpenSquare)
+                from index in Parse.Ref(() => Expression)
+                from closeSquare in Token.EqualTo(TokenType.CloseSquare)
+                select new AstExpressionMemberNode(s, index);
 
-        public static TokenListParser<TokenType, AstExpressionPropertyAccessNode> PropertyAccess { get; } =
-            from subject in Parse.Ref(() => Postfix)
-            from dot in Token.EqualTo(TokenType.DotOperator)
-            from property in Token.EqualTo(TokenType.Identifier)
-            select new AstExpressionPropertyAccessNode(subject, property.ToStringValue());
-            
+        public static Func<AstExpressionNode, TokenListParser<TokenType, AstExpressionPropertyAccessNode>> PropertyAccessTail { get; } =
+            s =>
+                from dot in Token.EqualTo(TokenType.DotOperator)
+                from property in Token.EqualTo(TokenType.Identifier)
+                select new AstExpressionPropertyAccessNode(s, property.ToStringValue());
+
+        public static Func<AstExpressionNode, TokenListParser<TokenType, AstExpressionNode>> PostfixTail { get; } =
+            s =>
+                CallTail(s).Select(c => (AstExpressionNode) c)
+                    .Or(MemberTail(s).Select(m => (AstExpressionNode) m))
+                    .Or(PropertyAccessTail(s).Select(p => (AstExpressionNode) p));
+
         public static TokenListParser<TokenType, AstExpressionNode> Postfix { get; } =
-            Call.Select(c => (AstExpressionNode) c)
-                .Or(Member.Select(m => (AstExpressionNode) m))
-                .Or(PropertyAccess.Select(p => (AstExpressionNode) p))
-                .Or(Terminal);
+            Parsers.RightRec(Terminal, PostfixTail);
         
         // 2 precedence
         public static TokenListParser<TokenType, AstExpressionNode> Unary { get; } =
@@ -113,6 +117,6 @@ namespace Nord.Compiler.Parser
             
         public static TokenListParser<TokenType, AstExpressionNode> Expression { get; } =
             Let.Select(e => (AstExpressionNode)e)
-                .Or(Equality);
+                .Or(Postfix);
     }
 }

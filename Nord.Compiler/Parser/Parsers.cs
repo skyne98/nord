@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Net.Http.Headers;
 using Nord.Compiler.Ast;
 using Nord.Compiler.Lexer;
 using Nord.Compiler.Parser;
 using Superpower;
+using Superpower.Util;
 using Superpower.Model;
 using Superpower.Parsers;
 
@@ -12,6 +14,31 @@ public class Parsers
         from statements in Parse.Ref(() => StatementParser.Statement)
             .ManyDelimitedBy(Token.EqualTo(TokenType.Semicolon).OptionalOrDefault())
         select statements;
+
+    public static TokenListParser<TKind, T> RightRec<TKind, T>(TokenListParser<TKind, T> head, Func<T, TokenListParser<TKind, T>> apply)
+    {
+        if (head == null) throw new ArgumentNullException(nameof(head));
+        if (apply == null) throw new ArgumentNullException(nameof(apply));
+
+        return input =>
+        {
+            var parseResult = head(input);
+            if (!parseResult.HasValue)
+                return parseResult;
+
+            var result = parseResult.Value;
+
+            var tailResult = apply(result)(parseResult.Remainder);
+            while (true)
+            {
+                if (!tailResult.HasValue) 
+                    return TokenListParserResult.Value(result, input, tailResult.Remainder);
+                
+                result = tailResult.Value;
+                tailResult = apply(result)(tailResult.Remainder);
+            }
+        };
+    }
 
     public static bool TryParse(string code, out object value, out string error, out Position errorPosition)
     {

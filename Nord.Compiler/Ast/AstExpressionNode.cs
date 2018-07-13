@@ -68,7 +68,12 @@ namespace Nord.Compiler.Ast
         public AstExpressionNode Value { get; private set; }
     }
 
-    public class AstExpressionCallNode : AstExpressionNode
+    public class AstPostfixNode : AstExpressionNode
+    {
+        
+    }
+    
+    public class AstExpressionCallNode : AstPostfixNode
     {
         public AstExpressionCallNode(AstExpressionNode function, AstExpressionNode[] parameters)
         {
@@ -80,7 +85,7 @@ namespace Nord.Compiler.Ast
         public AstExpressionNode[] Parameters { get; private set; }
     }
 
-    public class AstExpressionMemberNode : AstExpressionNode
+    public class AstExpressionMemberNode : AstPostfixNode
     {
         public AstExpressionMemberNode(AstExpressionNode subject, AstExpressionNode index)
         {
@@ -92,7 +97,7 @@ namespace Nord.Compiler.Ast
         public AstExpressionNode Index { get; private set; }
     }
 
-    public class AstExpressionPropertyAccessNode : AstExpressionNode
+    public class AstExpressionPropertyAccessNode : AstPostfixNode
     {
         public AstExpressionPropertyAccessNode(AstExpressionNode left, string right)
         {
