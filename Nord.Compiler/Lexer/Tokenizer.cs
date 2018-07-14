@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Superpower;
 using Superpower.Model;
 using Superpower.Parsers;
@@ -76,13 +77,22 @@ namespace Nord.Compiler.Lexer
                 .OptionalOrDefault()
             select (int)(whole * Math.Pow(10, exp));
 
+        public static TextParser<char> ControlChar =
+            from first in Character.EqualTo('\\')
+            from next in Character.EqualTo('t').Select(e => '\t')
+                .Or(Character.EqualTo('r').Select(e => '\r'))
+                .Or(Character.EqualTo('n').Select(e => '\n'))
+                .Or(Character.EqualTo('f').Select(e => '\f'))
+                .Or(Character.EqualTo('b').Select(e => '\b'))
+            select next;
+        
         public static TextParser<char> StringContentCharTokenizer =
-            Span.EqualTo("''").Value('\'').Try().Or(Character.ExceptIn('\'', '\r', '\n'));
+            Character.ExceptIn('"', '\\').Or(ControlChar);
 
         public static TextParser<string> StringTokenizer =
-            from open in Character.EqualTo('\'')
+            from open in Character.EqualTo('"')
             from value in StringContentCharTokenizer.Many()
-            from close in Character.EqualTo('\'')
+            from close in Character.EqualTo('"')
             select new string(value);
 
         protected override IEnumerable<Result<TokenType>> Tokenize(TextSpan span)
@@ -101,7 +111,7 @@ namespace Nord.Compiler.Lexer
                     next = result.Remainder.ConsumeChar();
                     yield return Result.Value(TokenType.Double, result.Location, result.Remainder);
                 }
-                else if (next.Value == '\'')
+                else if (next.Value == '\"')
                 {
                     var str = StringTokenizer(next.Location);
                     if (!str.HasValue)
