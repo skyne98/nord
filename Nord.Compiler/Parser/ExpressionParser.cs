@@ -70,7 +70,7 @@ namespace Nord.Compiler.Parser
         // 2 precedence
         public static TokenListParser<TokenType, AstExpressionNode> Unary { get; } =
             (from op in OperatorParser.BangOperator
-                    .Or(OperatorParser.PlusOperator)
+                    .Or(OperatorParser.MinusOperator)
                 from unary in Parse.Ref(() => Unary)
                 select new AstExpressionUnaryNode(op, unary))
             .Select(u => (AstExpressionNode) u)
@@ -89,34 +89,33 @@ namespace Nord.Compiler.Parser
             );
 
         // 5 precedence
-        public static TokenListParser<TokenType, AstExpressionAsNode> As { get; } =
-            from comparison in Parse.Ref(() => Comparison)
-            from asKeyword in OperatorParser.CastOperator
-            from type in TypeParser.TypeAnnotation
-            select new AstExpressionAsNode(comparison, type);
+        public static Func<AstExpressionNode, TokenListParser<TokenType, AstExpressionNode>> AsTail { get; } =
+            s => 
+                from asKeyword in OperatorParser.CastOperator
+                from type in TypeParser.TypeAnnotation
+                select (AstExpressionNode)new AstExpressionAsNode(s, type);
 
-        public static TokenListParser<TokenType, AstExpressionNode> LessMoreThanEquals { get; } =
+
+        public static TokenListParser<TokenType, AstExpressionNode> As { get; } =
+            Parsers.RightRec(Addition, AsTail);
+
+        public static TokenListParser<TokenType, AstExpressionNode> Comparison { get; } =
             Parse.Chain(OperatorParser.LessThanOperator
                     .Or(OperatorParser.LessThanEqualsOperator)
                     .Or(OperatorParser.MoreThanOperator)
-                    .Or(OperatorParser.MoreThanEqualsOperator), Parse.Ref(() => Comparison), (op, left, right) => 
-                new AstExpressionBinaryNode(op, left, right)
+                    .Or(OperatorParser.MoreThanEqualsOperator), As, (op, left, right) => 
+                    new AstExpressionBinaryNode(op, left, right)
             );
-
-        public static TokenListParser<TokenType, AstExpressionNode> Comparison { get; } =
-            As.Select(a => (AstExpressionNode) a)
-                .Or(LessMoreThanEquals)
-                .Or(Addition);
         
-        // 6 precedence
+        // 7 precedence
         public static TokenListParser<TokenType, AstExpressionNode> Equality { get; } =
             Parse.Chain(OperatorParser.EqualsOperator
-                    .Or(OperatorParser.NotEqualsOperator), Parse.Ref(() => Equality), (op, left, right) => 
+                    .Or(OperatorParser.NotEqualsOperator), Comparison, (op, left, right) =>
                     new AstExpressionBinaryNode(op, left, right)
-            ).Or(Comparison);
+            );
             
         public static TokenListParser<TokenType, AstExpressionNode> Expression { get; } =
             Let.Select(e => (AstExpressionNode)e)
-                .Or(Postfix);
+                .Or(Equality);
     }
 }
