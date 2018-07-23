@@ -27,27 +27,6 @@ namespace Nord.Compiler.Parser
             from elseExpression in ExpressionParser.Expression
             select new AstExpressionIfNode(conditionExpression, thenExpression, elseExpression);
 
-        public static TokenListParser<TokenType, AstExpressionFunction> Fn { get; } =
-            from fn in Token.EqualTo(TokenType.FnKeyword)
-            from name in Token.EqualTo(TokenType.Identifier)
-                .Optional()
-                .Select(t => t != null ? Option<Token<TokenType>>.Some(t.Value) : Option<Token<TokenType>>.None)
-                .Select(p => p.Map(t => t.ToStringValue()))
-            from openParen in Token.EqualTo(TokenType.OpenParen)
-            from parameters in TypeParser.Declarator.ManyDelimitedBy(Token.EqualTo(TokenType.Comma))
-            from closeParen in Token.EqualTo(TokenType.CloseParen)
-            from returnType in (
-                    from colon in Token.EqualTo(TokenType.Colon)
-                    from returnAnnotation in TypeParser.TypeAnnotation
-                    select returnAnnotation)
-                .OptionalOrDefault()
-                .Select(an => an != null ? Option<AstTypeAnnotationNode>.Some(an) : Option<AstTypeAnnotationNode>.None)
-            from openCurly in Token.EqualTo(TokenType.OpenCurly)
-            from statements in Parsers.StatementsBlock
-            from closeCurly in Token.EqualTo(TokenType.CloseCurly)
-            select new AstExpressionFunction(name, parameters, returnType, statements);
-
-
         // 0 precedence
         public static TokenListParser<TokenType, AstExpressionNode> Terminal { get; } =
             (
@@ -140,7 +119,6 @@ namespace Nord.Compiler.Parser
             
         public static TokenListParser<TokenType, AstExpressionNode> Expression { get; } =
             If.Select(i => (AstExpressionNode)i)
-                .Or(Fn.Select(fn => (AstExpressionNode)fn))
                 .Or(Equality);
     }
 }

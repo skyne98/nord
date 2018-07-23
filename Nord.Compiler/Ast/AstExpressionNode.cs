@@ -45,22 +45,6 @@ namespace Nord.Compiler.Ast
         public AstExpressionNode Else { get; private set; }
     }
 
-    public class AstExpressionFunction : AstExpressionNode
-    {
-        public AstExpressionFunction(Option<string> name, AstTypeDeclaratorNode[] paramaters, Option<AstTypeAnnotationNode> @return, AstStatementNode[] body)
-        {
-            Name = name;
-            Paramaters = paramaters;
-            Return = @return;
-            Body = body;
-        }
-
-        public Option<string> Name { get; private set; }
-        public AstTypeDeclaratorNode[] Paramaters { get; private set; }
-        public Option<AstTypeAnnotationNode> Return { get; private set; }
-        public AstStatementNode[] Body { get; private set; }
-    }
-
     public class AstExpressionBinaryNode : AstExpressionNode
     {
         public AstExpressionBinaryNode(string @operator, AstExpressionNode left, AstExpressionNode right)

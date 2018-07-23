@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using LanguageExt;
 
 namespace Nord.Compiler.Ast
 {
@@ -29,6 +30,22 @@ namespace Nord.Compiler.Ast
 
         public AstTypeDeclaratorNode Declarator { get; private set; }
         public AstExpressionNode Value { get; private set; }
+    }
+
+    public class AstStatementFunctionNode : AstStatementNode
+    {
+        public AstStatementFunctionNode(AstTypeAnnotationNode name, AstTypeDeclaratorNode[] parameters, Option<AstTypeAnnotationNode> @return, AstStatementNode[] body)
+        {
+            Name = name;
+            Parameters = parameters;
+            Return = @return;
+            Body = body;
+        }
+
+        public AstTypeAnnotationNode Name { get; private set; }
+        public AstTypeDeclaratorNode[] Parameters { get; private set; }
+        public Option<AstTypeAnnotationNode> Return { get; private set; }
+        public AstStatementNode[] Body { get; private set; }
     }
 
     public class AstStatementReturnNode : AstStatementNode
