@@ -10,14 +10,15 @@ namespace Nord.Compiler.Parser
 {
     public class TypeParser
     {
+        public static TokenListParser<TokenType, AstTypeAnnotationNode[]> TypeParameters { get; } =
+            from openAngle in Token.EqualTo(TokenType.OpenAngle)
+            from parameters in Parse.Ref(() => TypeAnnotation).ManyDelimitedBy(Token.EqualTo(TokenType.Comma))
+            from closeAngle in Token.EqualTo(TokenType.CloseAngle)
+            select parameters;
+
         public static TokenListParser<TokenType, AstTypeAnnotationNode> TypeAnnotation { get; } =
             from identifier in Token.EqualTo(TokenType.Identifier)
-            from parameters in (
-                from openAngle in Token.EqualTo(TokenType.OpenAngle)
-                from parameters in Parse.Ref(() => TypeAnnotation).ManyDelimitedBy(Token.EqualTo(TokenType.Comma))
-                from closeAngle in Token.EqualTo(TokenType.CloseAngle)
-                select parameters
-            ).OptionalOrDefault()
+            from parameters in TypeParameters.OptionalOrDefault()
             select parameters != null && parameters.Length > 0
                 ? new AstTypeAnnotationNode(identifier.ToStringValue(), parameters)
                 : new AstTypeAnnotationNode(identifier.ToStringValue(), new AstTypeAnnotationNode[]{});

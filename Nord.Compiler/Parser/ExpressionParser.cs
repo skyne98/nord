@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using LanguageExt;
 using Nord.Compiler.Ast;
 using Nord.Compiler.Lexer;
 using Superpower;
@@ -17,12 +19,34 @@ namespace Nord.Compiler.Parser
                 .Or(LiteralParser.Double.Select(e => (AstExpressionNode) e))
                 .Or(LiteralParser.Identifier.Select(e => (AstExpressionNode) e));
 
-        public static TokenListParser<TokenType, AstExpressionLetNode> Let { get; } =
-            from letKeyword in Token.EqualTo(TokenType.LetKeyword)
-            from declarator in TypeParser.Declarator
-            from equalsOperator in Token.EqualTo(TokenType.EqualsOperator)
-            from value in ExpressionParser.Expression
-            select new AstExpressionLetNode(declarator, value);
+        public static TokenListParser<TokenType, AstExpressionIfNode> If { get; } =
+            from ifKeyword in Token.EqualTo(TokenType.IfKeyword)
+            from conditionExpression in ExpressionParser.Expression
+            from thenExpression in ExpressionParser.Expression
+            from elseKeyword in Token.EqualTo(TokenType.ElseKeyword)
+            from elseExpression in ExpressionParser.Expression
+            select new AstExpressionIfNode(conditionExpression, thenExpression, elseExpression);
+
+        public static TokenListParser<TokenType, AstExpressionFunction> Fn { get; } =
+            from fn in Token.EqualTo(TokenType.FnKeyword)
+            from name in Token.EqualTo(TokenType.Identifier)
+                .Optional()
+                .Select(t => t != null ? Option<Token<TokenType>>.Some(t.Value) : Option<Token<TokenType>>.None)
+                .Select(p => p.Map(t => t.ToStringValue()))
+            from openParen in Token.EqualTo(TokenType.OpenParen)
+            from parameters in TypeParser.Declarator.ManyDelimitedBy(Token.EqualTo(TokenType.Comma))
+            from closeParen in Token.EqualTo(TokenType.CloseParen)
+            from returnType in (
+                    from colon in Token.EqualTo(TokenType.Colon)
+                    from returnAnnotation in TypeParser.TypeAnnotation
+                    select returnAnnotation)
+                .OptionalOrDefault()
+                .Select(an => an != null ? Option<AstTypeAnnotationNode>.Some(an) : Option<AstTypeAnnotationNode>.None)
+            from openCurly in Token.EqualTo(TokenType.OpenCurly)
+            from statements in Parsers.StatementsBlock
+            from closeCurly in Token.EqualTo(TokenType.CloseCurly)
+            select new AstExpressionFunction(name, parameters, returnType, statements);
+
 
         // 0 precedence
         public static TokenListParser<TokenType, AstExpressionNode> Terminal { get; } =
@@ -115,7 +139,8 @@ namespace Nord.Compiler.Parser
             );
             
         public static TokenListParser<TokenType, AstExpressionNode> Expression { get; } =
-            Let.Select(e => (AstExpressionNode)e)
+            If.Select(i => (AstExpressionNode)i)
+                .Or(Fn.Select(fn => (AstExpressionNode)fn))
                 .Or(Equality);
     }
 }

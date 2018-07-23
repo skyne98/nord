@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using LanguageExt;
 using Nord.Compiler.Lexer;
 
 namespace Nord.Compiler.Ast
@@ -30,16 +31,34 @@ namespace Nord.Compiler.Ast
         public string Name { get; private set; }
     }
 
-    public class AstExpressionLetNode : AstExpressionNode
+    public class AstExpressionIfNode : AstExpressionNode
     {
-        public AstExpressionLetNode(AstTypeDeclaratorNode declarator, AstExpressionNode value)
+        public AstExpressionIfNode(AstExpressionNode condition, AstExpressionNode then, AstExpressionNode @else)
         {
-            Declarator = declarator;
-            Value = value;
+            Condition = condition;
+            Then = then;
+            Else = @else;
         }
 
-        public AstTypeDeclaratorNode Declarator { get; private set; }
-        public AstExpressionNode Value { get; private set; }
+        public AstExpressionNode Condition { get; private set; }
+        public AstExpressionNode Then { get; private set; }
+        public AstExpressionNode Else { get; private set; }
+    }
+
+    public class AstExpressionFunction : AstExpressionNode
+    {
+        public AstExpressionFunction(Option<string> name, AstTypeDeclaratorNode[] paramaters, Option<AstTypeAnnotationNode> @return, AstStatementNode[] body)
+        {
+            Name = name;
+            Paramaters = paramaters;
+            Return = @return;
+            Body = body;
+        }
+
+        public Option<string> Name { get; private set; }
+        public AstTypeDeclaratorNode[] Paramaters { get; private set; }
+        public Option<AstTypeAnnotationNode> Return { get; private set; }
+        public AstStatementNode[] Body { get; private set; }
     }
 
     public class AstExpressionBinaryNode : AstExpressionNode
