@@ -1,0 +1,38 @@
+Class ->
+	Defines a type of an object
+	* Can import parts of other classes
+	* Can have abstract functions
+	* Can implement imported abstract functions
+
+Interface Class ->
+	Defines a fully abstract class
+	* Interface can have no implementations
+
+pub abs class Animal {
+// marks exported, open, abstract class
+// open - can be inherited from (optional with abs)
+// abs - cannot be constructed
+	pub abs fn get name()
+	pub abs fn set name(value)
+	// pub members are exported
+	// abstract members are implicitly exported
+}
+
+pub class Cat {
+// class is not abstract, nor open
+// because name is implemented with final
+	pub use { name } from Animal 
+	// now you can either override
+	// or use name
+	// to stop propagation
+	// you should implement it with "final"
+	pri let name_value = "Aleksey"
+	// local private variable declaration
+	// pri - private (optional)
+	pub impl fn get name() => name_value
+	pub impl fn set name(value) => name_value = value
+}
+
+-- open keyword --
+* Defines an inheritable class
+* Should 
