@@ -40,13 +40,14 @@ namespace Nord.Compiler.Parser
         // 1 precedence
         public static Func<AstExpressionNode, TokenListParser<TokenType, AstExpressionCallNode>> CallTail { get; } =
             s =>    
+                from typeParameters in TypeParser.TypeParameters.OptionalOrDefault()
                 from openParen in Token.EqualTo(TokenType.OpenParen)
                 from arguments in (
                     from expressions in Parse.Ref(() => Expression).ManyDelimitedBy(Token.EqualTo(TokenType.Comma))
                     select expressions
                 )
                 from closeParen in Token.EqualTo(TokenType.CloseParen)
-                select new AstExpressionCallNode(s, arguments);
+                select new AstExpressionCallNode(s, typeParameters, arguments);
 
         public static Func<AstExpressionNode, TokenListParser<TokenType, AstExpressionMemberNode>> MemberTail { get; } =
             s =>
@@ -116,9 +117,15 @@ namespace Nord.Compiler.Parser
                     .Or(OperatorParser.NotEqualsOperator), Comparison, (op, left, right) =>
                     new AstExpressionBinaryNode(op, left, right)
             );
-            
+
+        // 8 precedence
+        public static TokenListParser<TokenType, AstExpressionNode> Assignment { get; } =
+            Parse.ChainRight(OperatorParser.AssignmentOperator, 
+                Equality.Try().Or(Comparison), 
+                (op, left, right) => new AstExpressionBinaryNode(op, left, right));
+
         public static TokenListParser<TokenType, AstExpressionNode> Expression { get; } =
             If.Select(i => (AstExpressionNode)i)
-                .Or(Equality);
+                .Or(Assignment);
     }
 }
