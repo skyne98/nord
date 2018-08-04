@@ -40,7 +40,7 @@ namespace Nord.Compiler.Parser
         // 1 precedence
         public static Func<AstExpressionNode, TokenListParser<TokenType, AstExpressionCallNode>> CallTail { get; } =
             s =>    
-                from typeParameters in TypeParser.TypeParameters.OptionalOrDefault()
+                from typeParameters in TypeParser.TypeArguments.OptionalOrDefault()
                 from openParen in Token.EqualTo(TokenType.OpenParen)
                 from arguments in (
                     from expressions in Parse.Ref(() => Expression).ManyDelimitedBy(Token.EqualTo(TokenType.Comma))
@@ -96,7 +96,7 @@ namespace Nord.Compiler.Parser
         public static Func<AstExpressionNode, TokenListParser<TokenType, AstExpressionNode>> AsTail { get; } =
             s => 
                 from asKeyword in OperatorParser.CastOperator
-                from type in TypeParser.TypeAnnotation
+                from type in TypeParser.TypeReference
                 select (AstExpressionNode)new AstExpressionAsNode(s, type);
 
 

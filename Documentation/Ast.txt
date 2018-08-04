@@ -1,0 +1,35 @@
+# Statements
+1. Expression -> Done
+2. Let -> Done
+3. Function -> Done
+4. Return -> Done
+5. Break -> Done
+6. Continue -> Done
+7. Loop -> Done
+
+# Expression
+1. Literal -> Done
+2. Identifier -> Done
+3. IfElse -> Done
+4. Binary -> Done
+    1. Assignment -> Done
+    2. Equality -> Done
+    3. Comparison -> Done
+    4. Addition -> Done
+    5. Multiplication -> Done
+5. Unary -> Done
+    1. Minus -> Done
+    2. Bang -> Done
+6. Function Call -> Done
+7. Member -> Done
+8. Property -> Done
+9. As Type -> Done
+
+# Types
+1. Type Annotation -> Done
+2. Type Declarator -> Done
+3. Type Parameters -> Done
+4. Type Parameter -> Done
+5. Type Constraint -> Done
+6. Type Arguments -> Done
+7. Type Reference -> Done

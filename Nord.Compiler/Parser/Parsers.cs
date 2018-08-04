@@ -1,5 +1,7 @@
 ﻿using System;
+using System.ComponentModel.Design;
 using System.Net.Http.Headers;
+using LanguageExt;
 using Nord.Compiler.Ast;
 using Nord.Compiler.Lexer;
 using Nord.Compiler.Parser;
@@ -8,7 +10,7 @@ using Superpower.Util;
 using Superpower.Model;
 using Superpower.Parsers;
 
-public class Parsers
+public static class Parsers
 {
     public static TokenListParser<TokenType, AstStatementNode[]> StatementsBlock { get; } =
         from statements in Parse.Ref(() => StatementParser.Statement)

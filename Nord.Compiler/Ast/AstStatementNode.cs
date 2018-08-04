@@ -34,17 +34,19 @@ namespace Nord.Compiler.Ast
 
     public class AstStatementFunctionNode : AstStatementNode
     {
-        public AstStatementFunctionNode(AstTypeAnnotationNode name, AstTypeDeclaratorNode[] parameters, Option<AstTypeAnnotationNode> @return, AstStatementNode[] body)
+        public AstStatementFunctionNode(string name, AstTypeParameterNode[] typeParameters, AstTypeDeclaratorNode[] parameters, Option<AstTypeReferenceNode> @return, AstStatementNode[] body)
         {
             Name = name;
+            TypeParameters = typeParameters;
             Parameters = parameters;
             Return = @return;
             Body = body;
         }
 
-        public AstTypeAnnotationNode Name { get; private set; }
+        public string Name { get; private set; }
+        public AstTypeParameterNode[] TypeParameters { get; private set; }
         public AstTypeDeclaratorNode[] Parameters { get; private set; }
-        public Option<AstTypeAnnotationNode> Return { get; private set; }
+        public Option<AstTypeReferenceNode> Return { get; private set; }
         public AstStatementNode[] Body { get; private set; }
     }
 

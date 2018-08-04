@@ -17,20 +17,21 @@ namespace Nord.Compiler.Parser
 
         public static TokenListParser<TokenType, AstStatementFunctionNode> FnStatement { get; } =
             from fn in Token.EqualTo(TokenType.FnKeyword)
-            from name in TypeParser.TypeAnnotation
+            from name in Token.EqualTo(TokenType.Identifier)
+            from typeParameters in TypeParser.TypeParameters
             from openParen in Token.EqualTo(TokenType.OpenParen)
             from parameters in TypeParser.Declarator.ManyDelimitedBy(Token.EqualTo(TokenType.Comma))
             from closeParen in Token.EqualTo(TokenType.CloseParen)
             from returnType in (
                     from colon in Token.EqualTo(TokenType.Colon)
-                    from returnAnnotation in TypeParser.TypeAnnotation
+                    from returnAnnotation in TypeParser.TypeReference
                     select returnAnnotation)
                 .OptionalOrDefault()
-                .Select(an => an != null ? Option<AstTypeAnnotationNode>.Some(an) : Option<AstTypeAnnotationNode>.None)
+                .Select(an => an != null ? Option<AstTypeReferenceNode>.Some(an) : Option<AstTypeReferenceNode>.None)
             from openCurly in Token.EqualTo(TokenType.OpenCurly)
             from statements in Parsers.StatementsBlock
             from closeCurly in Token.EqualTo(TokenType.CloseCurly)
-            select new AstStatementFunctionNode(name, parameters, returnType, statements);
+            select new AstStatementFunctionNode(name.ToStringValue(), typeParameters, parameters, returnType, statements);
 
         public static TokenListParser<TokenType, AstStatementLetNode> LetStatement { get; } =
             from letKeyword in Token.EqualTo(TokenType.LetKeyword)

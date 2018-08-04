@@ -78,7 +78,7 @@ namespace Nord.Compiler.Ast
     
     public class AstExpressionCallNode : AstPostfixNode
     {
-        public AstExpressionCallNode(AstExpressionNode function, AstTypeAnnotationNode[] typeParameters, AstExpressionNode[] parameters)
+        public AstExpressionCallNode(AstExpressionNode function, AstTypeReferenceNode[] typeParameters, AstExpressionNode[] parameters)
         {
             Function = function;
             TypeParameters = typeParameters;
@@ -86,7 +86,7 @@ namespace Nord.Compiler.Ast
         }
 
         public AstExpressionNode Function { get; private set; }
-        public AstTypeAnnotationNode[] TypeParameters { get; private set; }
+        public AstTypeReferenceNode[] TypeParameters { get; private set; }
 
         public AstExpressionNode[] Parameters { get; private set; }
     }
@@ -117,13 +117,13 @@ namespace Nord.Compiler.Ast
 
     public class AstExpressionAsNode : AstExpressionNode
     {
-        public AstExpressionAsNode(AstExpressionNode expression, AstTypeAnnotationNode type)
+        public AstExpressionAsNode(AstExpressionNode expression, AstTypeReferenceNode type)
         {
             Expression = expression;
             Type = type;
         }
 
         public AstExpressionNode Expression { get; private set; }
-        public AstTypeAnnotationNode Type { get; private set; }
+        public AstTypeReferenceNode Type { get; private set; }
     }
 }

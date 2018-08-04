@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 using LanguageExt;
 
@@ -22,15 +23,27 @@ namespace Nord.Compiler.Ast
         public Option<AstTypeNode> Type { get; private set; }
     }
 
-    public class AstTypeAnnotationNode : AstTypeNode
+    public class AstTypeReferenceNode : AstTypeNode
     {
-        public AstTypeAnnotationNode(string name, AstTypeAnnotationNode[] parameters)
+        public AstTypeReferenceNode(string name, AstTypeReferenceNode[] arguments)
         {
             Name = name;
-            Parameters = parameters;
+            Arguments = arguments;
         }
 
         public string Name { get; private set; }
-        public AstTypeAnnotationNode[] Parameters { get; private set; }
+        public AstTypeReferenceNode[] Arguments { get; private set; }
+    }
+
+    public class AstTypeParameterNode : AstTypeNode
+    {
+        public AstTypeParameterNode(string name, AstTypeReferenceNode constraint = null)
+        {
+            Name = name;
+            Constraint = constraint;
+        }
+
+        public string Name { get; private set; }
+        public Option<AstTypeReferenceNode> Constraint { get; private set; }
     }
 }
