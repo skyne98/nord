@@ -62,6 +62,8 @@ namespace Nord.Compiler.Lexer
         PrivateKeyword,
         [Token(Category = "keyword", Example = "is")]
         IsKeyword,
+        [Token(Category = "keyword", Example = "from")]
+        FromKeyword,
 
         // Operators
         [Token(Category = "operator", Example = "=")]

@@ -126,11 +126,22 @@ namespace Nord.Compiler.Parser
             from body in Parsers.TopLevelStatementBlock
             from closeCurly in Token.EqualTo(TokenType.CloseCurly)
             select new AstStatementClassNode(name.ToStringValue(), body);
+
+        public static TokenListParser<TokenType, AstStatementUseNode> UseStatement { get; } =
+            from useKeyword in Token.EqualTo(TokenType.UseKeyword)
+            from alias in Token.EqualTo(TokenType.Identifier)
+                .Select(alias => (Either<string, AstDestructuringPatternNode>) alias.ToStringValue())
+                .Or(Parsers.DestructuringPattern
+                    .Select(dp => (Either<string, AstDestructuringPatternNode>) dp))
+            from @from in Token.EqualTo(TokenType.FromKeyword)
+            from path in Token.EqualTo(TokenType.String)
+            select new AstStatementUseNode(alias, path.ToStringValue());
         
         public static TokenListParser<TokenType, AstStatementTopLevelNode> TopLevelStatement { get; } =
             from modifiers in Modifiers
             from statement in FnStatement.Select(fn => (AstStatementNode) fn)
                 .Or(ClassStatement.Select(c => (AstStatementNode) c))
+                .Or(UseStatement.Select(u => (AstStatementNode) u))
             select new AstStatementTopLevelNode(modifiers, statement);
     }
 }

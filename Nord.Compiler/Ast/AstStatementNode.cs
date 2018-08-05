@@ -95,6 +95,18 @@ namespace Nord.Compiler.Ast
         public AstStatementTopLevelNode[] Body { get; private set; }
     }
 
+    public class AstStatementUseNode : AstStatementNode
+    {
+        public AstStatementUseNode(Either<string, AstDestructuringPatternNode> @alias, string @from)
+        {
+            Alias = alias;
+            From = @from;
+        }
+
+        public Either<string, AstDestructuringPatternNode> Alias { get; private set; }
+        public string From { get; private set; }
+    }
+
     public class AstStatementTopLevelNode : AstStatementNode
     {
         public AstStatementTopLevelNode(AstModifier[] modifiers, AstStatementNode statement)

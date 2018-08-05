@@ -11,7 +11,7 @@
 7. Loop -> Done
 8. Class Declaration -> Done
 9. Top Level Statement -> Done
-10. Use Statement -> Not Yet
+10. Use Statement -> Done
 
 # Expression
 1. Literal -> Done

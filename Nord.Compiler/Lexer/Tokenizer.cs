@@ -59,6 +59,7 @@ namespace Nord.Compiler.Lexer
             ["pub"] = TokenType.PublicKeyword,
             ["pri"] = TokenType.PrivateKeyword,
             ["is"] = TokenType.IsKeyword,
+            ["from"] = TokenType.FromKeyword,
         };
 
         public static TextParser<double> DoubleTokenizer { get; } =
