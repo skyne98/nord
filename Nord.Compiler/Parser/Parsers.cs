@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.Design;
+using System.Linq;
 using System.Net.Http.Headers;
 using LanguageExt;
 using Nord.Compiler.Ast;
@@ -20,7 +22,105 @@ public static class Parsers
     public static TokenListParser<TokenType, AstStatementTopLevelNode[]> TopLevelStatementBlock { get; } = 
         from statements in Parse.Ref(() => StatementParser.TopLevelStatement)
             .ManyDelimitedBy(Token.EqualTo(TokenType.Semicolon).OptionalOrDefault())
-        select statements; 
+        select statements;
+
+    // Destructuring -> Array
+    public static TokenListParser<TokenType, AstDestructuringArrayPatternNode> DestructuringArrayElements { get; } =
+        from names in Token.EqualTo(TokenType.Identifier).ManyDelimitedBy(Token.EqualTo(TokenType.Comma))
+        select new AstDestructuringArrayPatternNode(names.Select(n => n.ToStringValue()).ToArray(), null);
+    
+    public static TokenListParser<TokenType, AstDestructuringArrayPatternNode> DestructuringArrayElementsWithRest { get; } =
+        from names in Token.EqualTo(TokenType.Identifier).ManyDelimitedBy(Token.EqualTo(TokenType.Comma))
+        from comma in Token.EqualTo(TokenType.Comma)
+        from threeDots in Token.EqualTo(TokenType.DotOperator).Repeat(3)
+        from rest in Token.EqualTo(TokenType.Identifier)
+        select new AstDestructuringArrayPatternNode(names.Select(n => n.ToStringValue()).ToArray(),
+            rest.ToStringValue());
+    
+    public static TokenListParser<TokenType, AstDestructuringArrayPatternNode> DestructuringArrayElementsRestOnly { get; } =
+        from threeDots in Token.EqualTo(TokenType.DotOperator).Repeat(3)
+        from rest in Token.EqualTo(TokenType.Identifier)
+        select new AstDestructuringArrayPatternNode(new string[] {}, rest.ToStringValue());
+
+    public static TokenListParser<TokenType, AstDestructuringArrayPatternNode> DestructuringArrayPattern { get; } =
+        from openSquare in Token.EqualTo(TokenType.OpenSquare)
+        from elements in DestructuringArrayElements
+            .Or(DestructuringArrayElementsWithRest)
+            .Or(DestructuringArrayElementsRestOnly)
+        from closeSquare in Token.EqualTo(TokenType.CloseSquare)
+        select elements;
+    
+    // Destructuring -> Tuple
+    public static TokenListParser<TokenType, AstDestructuringTuplePatternNode> DestructuringTupleElements { get; } =
+        from names in Token.EqualTo(TokenType.Identifier).ManyDelimitedBy(Token.EqualTo(TokenType.Comma))
+        select new AstDestructuringTuplePatternNode(names.Select(n => n.ToStringValue()).ToArray(), null);
+    
+    public static TokenListParser<TokenType, AstDestructuringTuplePatternNode> DestructuringTupleElementsWithRest { get; } =
+        from names in Token.EqualTo(TokenType.Identifier).ManyDelimitedBy(Token.EqualTo(TokenType.Comma))
+        from comma in Token.EqualTo(TokenType.Comma)
+        from threeDots in Token.EqualTo(TokenType.DotOperator).Repeat(3)
+        from rest in Token.EqualTo(TokenType.Identifier)
+        select new AstDestructuringTuplePatternNode(names.Select(n => n.ToStringValue()).ToArray(),
+            rest.ToStringValue());
+    
+    public static TokenListParser<TokenType, AstDestructuringTuplePatternNode> DestructuringTupleElementsRestOnly { get; } =
+        from threeDots in Token.EqualTo(TokenType.DotOperator).Repeat(3)
+        from rest in Token.EqualTo(TokenType.Identifier)
+        select new AstDestructuringTuplePatternNode(new string[] {}, rest.ToStringValue());
+
+    public static TokenListParser<TokenType, AstDestructuringTuplePatternNode> DestructuringTuplePattern { get; } =
+        from openParen in Token.EqualTo(TokenType.OpenParen)
+        from elements in DestructuringTupleElements
+            .Or(DestructuringTupleElementsWithRest)
+            .Or(DestructuringTupleElementsRestOnly)
+        from closeParen in Token.EqualTo(TokenType.CloseParen)
+        select elements;
+    
+    // Destructuring -> Object
+    public static TokenListParser<TokenType, Either<string, AstDestructuringPatternNode>> DestructuringBindingAlias { get; } =
+        from asKeyword in OperatorParser.CastOperator
+        from alias in Token.EqualTo(TokenType.Identifier)
+            .Select(t => (Either<string, AstDestructuringPatternNode>) t.ToStringValue())
+            .Or(Parse.Ref(() => DestructuringPattern)
+                .Select(p => (Either<string, AstDestructuringPatternNode>) p))
+        select alias;
+
+
+    public static TokenListParser<TokenType, AstDestructuringPatternBindingElement> DestructuringBindingElement { get; }
+        =
+        from name in Token.EqualTo(TokenType.Identifier)
+        from alias in DestructuringBindingAlias.OptionalOrDefault()
+        select new AstDestructuringPatternBindingElement(name.ToStringValue(), alias);
+    
+    public static TokenListParser<TokenType, AstDestructuringObjectPetternNode> DestructuringObjectElements { get; } =
+        from names in DestructuringBindingElement.ManyDelimitedBy(Token.EqualTo(TokenType.Comma))
+        select new AstDestructuringObjectPetternNode(names.ToArray(), null);
+    
+    public static TokenListParser<TokenType, AstDestructuringObjectPetternNode> DestructuringObjectElementsWithRest { get; } =
+        from names in DestructuringBindingElement.ManyDelimitedBy(Token.EqualTo(TokenType.Comma))
+        from comma in Token.EqualTo(TokenType.Comma)
+        from threeDots in Token.EqualTo(TokenType.DotOperator).Repeat(3)
+        from rest in Token.EqualTo(TokenType.Identifier)
+        select new AstDestructuringObjectPetternNode(names.ToArray(), rest.ToStringValue());
+    
+    public static TokenListParser<TokenType, AstDestructuringObjectPetternNode> DestructuringObjectElementsRestOnly { get; } =
+        from threeDots in Token.EqualTo(TokenType.DotOperator).Repeat(3)
+        from rest in Token.EqualTo(TokenType.Identifier)
+        select new AstDestructuringObjectPetternNode(new AstDestructuringPatternBindingElement[] {},
+            rest.ToStringValue());
+
+    public static TokenListParser<TokenType, AstDestructuringObjectPetternNode> DestructuringObjectPattern { get; } =
+        from openCurly in Token.EqualTo(TokenType.OpenCurly)
+        from elements in DestructuringObjectElements
+            .Or(DestructuringObjectElementsWithRest)
+            .Or(DestructuringObjectElementsRestOnly)
+        from closeCurly in Token.EqualTo(TokenType.CloseCurly)
+        select elements;
+
+    public static TokenListParser<TokenType, AstDestructuringPatternNode> DestructuringPattern { get; } =
+        DestructuringArrayPattern.Select(ap => (AstDestructuringPatternNode) ap)
+            .Or(DestructuringTuplePattern.Select(tp => (AstDestructuringPatternNode) tp))
+            .Or(DestructuringObjectPattern.Select(op => (AstDestructuringPatternNode) op));
     
     public static TokenListParser<TKind, T> RightRec<TKind, T>(TokenListParser<TKind, T> head, Func<T, TokenListParser<TKind, T>> apply)
     {

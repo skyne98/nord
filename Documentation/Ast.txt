@@ -1,5 +1,5 @@
 # Parsers
-1. Destructuring -> Not Yet
+1. Destructuring -> Done
 
 # Statements
 1. Expression -> Done
@@ -11,7 +11,7 @@
 7. Loop -> Done
 8. Class Declaration -> Done
 9. Top Level Statement -> Done
-10. Use Statement -> In Progress
+10. Use Statement -> Not Yet
 
 # Expression
 1. Literal -> Done

@@ -21,7 +21,21 @@ namespace Nord.Demo
                     if (Parsers.TryParse(line, out var value, out var error, out var errorPosition))
                     {
                         var serializer = new SerializerBuilder().Build();
-                        Console.WriteLine(serializer.Serialize(value));
+                        try
+                        {
+                            Console.WriteLine(serializer.Serialize(value));
+                        }
+                        catch
+                        {
+                            try
+                            {
+                                Console.WriteLine(JsonConvert.SerializeObject(value, Formatting.Indented));
+                            }
+                            catch
+                            {
+                                Console.WriteLine("There was a problem with serialization");
+                            }
+                        }
                     }
                     else
                     {

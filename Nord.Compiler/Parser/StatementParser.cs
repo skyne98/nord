@@ -82,6 +82,9 @@ namespace Nord.Compiler.Parser
         public static TokenListParser<TokenType, AstStatementLetNode> LetStatement { get; } =
             from letKeyword in Token.EqualTo(TokenType.LetKeyword)
             from declarator in TypeParser.Declarator
+                .Select(dec => (Either<AstTypeDeclaratorNode, AstDestructuringPatternNode>) dec)
+                .Or(Parsers.DestructuringPattern
+                    .Select(dp => (Either<AstTypeDeclaratorNode, AstDestructuringPatternNode>) dp))
             from equalsOperator in Token.EqualTo(TokenType.EqualsOperator)
             from value in ExpressionParser.Expression
             select new AstStatementLetNode(declarator, value);

@@ -73,13 +73,13 @@ namespace Nord.Compiler.Ast
     // Declarations
     public class AstStatementLetNode : AstStatementNode
     {
-        public AstStatementLetNode(AstTypeDeclaratorNode declarator, AstExpressionNode value)
+        public AstStatementLetNode(Either<AstTypeDeclaratorNode, AstDestructuringPatternNode> declarator, AstExpressionNode value)
         {
             Declarator = declarator;
             Value = value;
         }
 
-        public AstTypeDeclaratorNode Declarator { get; private set; }
+        public Either<AstTypeDeclaratorNode, AstDestructuringPatternNode> Declarator { get; private set; }
         public AstExpressionNode Value { get; private set; }
     }
 
