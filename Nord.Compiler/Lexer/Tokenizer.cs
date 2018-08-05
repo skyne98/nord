@@ -10,7 +10,7 @@ namespace Nord.Compiler.Lexer
 {
     public class NordTokenizer: Tokenizer<TokenType>
     {
-        static readonly Dictionary<char, TokenType> _operators = new Dictionary<char, TokenType>
+        static readonly Dictionary<char, TokenType> Operators = new Dictionary<char, TokenType>
         {
             ['='] = TokenType.EqualsOperator,
             ['+'] = TokenType.PlusOperator,
@@ -36,7 +36,7 @@ namespace Nord.Compiler.Lexer
             [':'] = TokenType.Colon
         };
 
-        static readonly Dictionary<string, TokenType> _keywords = new Dictionary<string, TokenType>
+        static readonly Dictionary<string, TokenType> Keywords = new Dictionary<string, TokenType>
         {
             ["let"] = TokenType.LetKeyword,
             ["fn"] = TokenType.FnKeyword,
@@ -51,6 +51,14 @@ namespace Nord.Compiler.Lexer
             ["in"] = TokenType.InKeyword,
             ["new"] = TokenType.NewKeyword,
             ["as"] = TokenType.AsKeyword,
+            ["class"] = TokenType.ClassKeyword,
+            ["open"] = TokenType.OpenKeyword,
+            ["final"] = TokenType.FinalKeyword,
+            ["abs"] = TokenType.AbstractKeyword,
+            ["use"] = TokenType.UseKeyword,
+            ["pub"] = TokenType.PublicKeyword,
+            ["pri"] = TokenType.PrivateKeyword,
+            ["is"] = TokenType.IsKeyword,
         };
 
         public static TextParser<double> DoubleTokenizer { get; } =
@@ -139,7 +147,7 @@ namespace Nord.Compiler.Lexer
                         yield return Result.Value(TokenType.Identifier, beginIdentifier, next.Location);
                     }
                 }
-                else if (_operators.TryGetValue(next.Value, out charTokenTye))
+                else if (Operators.TryGetValue(next.Value, out charTokenTye))
                 {
                     yield return Result.Value(charTokenTye, next.Location, next.Remainder);
                     next = next.Remainder.ConsumeChar();
@@ -155,7 +163,7 @@ namespace Nord.Compiler.Lexer
 
         static bool TryGetKeyword(TextSpan span, out TokenType keyword)
         {
-            foreach (var kw in _keywords)
+            foreach (var kw in Keywords)
             {
                 if (span.EqualsValueIgnoreCase(kw.Key))
                 {

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using LanguageExt;
+using LanguageExt.ClassInstances;
 
 namespace Nord.Compiler.Ast
 {
@@ -18,18 +19,6 @@ namespace Nord.Compiler.Ast
         }
 
         public AstExpressionNode Expression { get; private set; }
-    }
-
-    public class AstStatementLetNode : AstStatementNode
-    {
-        public AstStatementLetNode(AstTypeDeclaratorNode declarator, AstExpressionNode value)
-        {
-            Declarator = declarator;
-            Value = value;
-        }
-
-        public AstTypeDeclaratorNode Declarator { get; private set; }
-        public AstExpressionNode Value { get; private set; }
     }
 
     public class AstStatementFunctionNode : AstStatementNode
@@ -79,5 +68,42 @@ namespace Nord.Compiler.Ast
         }
 
         public AstStatementNode[] Statements { get; private set; }
+    }
+    
+    // Declarations
+    public class AstStatementLetNode : AstStatementNode
+    {
+        public AstStatementLetNode(AstTypeDeclaratorNode declarator, AstExpressionNode value)
+        {
+            Declarator = declarator;
+            Value = value;
+        }
+
+        public AstTypeDeclaratorNode Declarator { get; private set; }
+        public AstExpressionNode Value { get; private set; }
+    }
+
+    public class AstStatementClassNode : AstStatementNode
+    {
+        public AstStatementClassNode(string name, AstStatementTopLevelNode[] body)
+        {
+            Name = name;
+            Body = body;
+        }
+
+        public string Name { get; private set; }
+        public AstStatementTopLevelNode[] Body { get; private set; }
+    }
+
+    public class AstStatementTopLevelNode : AstStatementNode
+    {
+        public AstStatementTopLevelNode(AstModifier[] modifiers, AstStatementNode statement)
+        {
+            Modifiers = modifiers;
+            Statement = statement;
+        }
+        
+        public AstModifier[] Modifiers { get; private set; }
+        public AstStatementNode Statement { get; private set; }
     }
 }

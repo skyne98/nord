@@ -46,6 +46,22 @@ namespace Nord.Compiler.Lexer
         NewKeyword,
         [Token(Category = "keyword", Example = "as")]
         AsKeyword,
+        [Token(Category = "keyword", Example = "class")]
+        ClassKeyword,
+        [Token(Category = "keyword", Example = "open")]
+        OpenKeyword,
+        [Token(Category = "keyword", Example = "final")]
+        FinalKeyword,
+        [Token(Category = "keyword", Example = "abs")]
+        AbstractKeyword,
+        [Token(Category = "keyword", Example = "use")]
+        UseKeyword,
+        [Token(Category = "keyword", Example = "pub")]
+        PublicKeyword,
+        [Token(Category = "keyword", Example = "pri")]
+        PrivateKeyword,
+        [Token(Category = "keyword", Example = "is")]
+        IsKeyword,
 
         // Operators
         [Token(Category = "operator", Example = "=")]

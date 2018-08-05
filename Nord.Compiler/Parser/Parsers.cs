@@ -17,6 +17,11 @@ public static class Parsers
             .ManyDelimitedBy(Token.EqualTo(TokenType.Semicolon).OptionalOrDefault())
         select statements;
 
+    public static TokenListParser<TokenType, AstStatementTopLevelNode[]> TopLevelStatementBlock { get; } = 
+        from statements in Parse.Ref(() => StatementParser.TopLevelStatement)
+            .ManyDelimitedBy(Token.EqualTo(TokenType.Semicolon).OptionalOrDefault())
+        select statements; 
+    
     public static TokenListParser<TKind, T> RightRec<TKind, T>(TokenListParser<TKind, T> head, Func<T, TokenListParser<TKind, T>> apply)
     {
         if (head == null) throw new ArgumentNullException(nameof(head));
@@ -54,7 +59,7 @@ public static class Parsers
             return false;
         }
 
-        var parsed = StatementParser.Statement.TryParse(tokens.Value);
+        var parsed = StatementParser.TopLevelStatement.TryParse(tokens.Value);
         if (!parsed.HasValue)
         {
             value = null;
