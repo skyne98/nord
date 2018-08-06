@@ -6,11 +6,13 @@ using Nord.Compiler.Lexer;
 
 namespace Nord.Compiler.Ast
 {
+    [Serializable]
     public class AstExpressionNode: AstNode
     {
         
     }
 
+    [Serializable]
     public class AstExpressionLiteralNode<V> : AstExpressionNode
     {
         public AstExpressionLiteralNode(V value)
@@ -21,6 +23,7 @@ namespace Nord.Compiler.Ast
         public V Value { get; private set; }
     }
 
+    [Serializable]
     public class AstExpressionIdentifierLiteralNode : AstExpressionNode
     {
         public AstExpressionIdentifierLiteralNode(string name)
@@ -31,6 +34,7 @@ namespace Nord.Compiler.Ast
         public string Name { get; private set; }
     }
 
+    [Serializable]
     public class AstExpressionIfNode : AstExpressionNode
     {
         public AstExpressionIfNode(AstExpressionNode condition, AstExpressionNode then, AstExpressionNode @else)
@@ -45,6 +49,7 @@ namespace Nord.Compiler.Ast
         public AstExpressionNode Else { get; private set; }
     }
 
+    [Serializable]
     public class AstExpressionBinaryNode : AstExpressionNode
     {
         public AstExpressionBinaryNode(string @operator, AstExpressionNode left, AstExpressionNode right)
@@ -59,6 +64,7 @@ namespace Nord.Compiler.Ast
         public AstExpressionNode Right { get; private set; }
     }
 
+    [Serializable]
     public class AstExpressionUnaryNode : AstExpressionNode
     {
         public AstExpressionUnaryNode(string @operator, AstExpressionNode value)
@@ -71,11 +77,13 @@ namespace Nord.Compiler.Ast
         public AstExpressionNode Value { get; private set; }
     }
 
+    [Serializable]
     public class AstPostfixNode : AstExpressionNode
     {
         
     }
     
+    [Serializable]
     public class AstExpressionCallNode : AstPostfixNode
     {
         public AstExpressionCallNode(AstExpressionNode function, AstTypeReferenceNode[] typeParameters, AstExpressionNode[] parameters)
@@ -91,6 +99,7 @@ namespace Nord.Compiler.Ast
         public AstExpressionNode[] Parameters { get; private set; }
     }
 
+    [Serializable]
     public class AstExpressionMemberNode : AstPostfixNode
     {
         public AstExpressionMemberNode(AstExpressionNode subject, AstExpressionNode index)
@@ -103,6 +112,7 @@ namespace Nord.Compiler.Ast
         public AstExpressionNode Index { get; private set; }
     }
 
+    [Serializable]
     public class AstExpressionPropertyAccessNode : AstPostfixNode
     {
         public AstExpressionPropertyAccessNode(AstExpressionNode left, string right)
@@ -115,6 +125,7 @@ namespace Nord.Compiler.Ast
         public string Right { get; private set; }
     }
 
+    [Serializable]
     public class AstExpressionAsNode : AstExpressionNode
     {
         public AstExpressionAsNode(AstExpressionNode expression, AstTypeReferenceNode type)

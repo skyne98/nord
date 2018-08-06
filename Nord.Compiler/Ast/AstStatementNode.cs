@@ -6,11 +6,13 @@ using LanguageExt.ClassInstances;
 
 namespace Nord.Compiler.Ast
 {
+    [Serializable]
     public class AstStatementNode: AstNode
     {
 
     }
 
+    [Serializable]
     public class AstStatementExpressionNode : AstStatementNode
     {
         public AstStatementExpressionNode(AstExpressionNode expression)
@@ -21,6 +23,7 @@ namespace Nord.Compiler.Ast
         public AstExpressionNode Expression { get; private set; }
     }
 
+    [Serializable]
     public class AstStatementFunctionNode : AstStatementNode
     {
         public AstStatementFunctionNode(string name, AstTypeParameterNode[] typeParameters, AstTypeDeclaratorNode[] parameters, Option<AstTypeReferenceNode> @return, AstStatementNode[] body)
@@ -39,6 +42,7 @@ namespace Nord.Compiler.Ast
         public AstStatementNode[] Body { get; private set; }
     }
 
+    [Serializable]
     public class AstStatementReturnNode : AstStatementNode
     {
         public AstStatementReturnNode(AstExpressionNode value)
@@ -49,17 +53,20 @@ namespace Nord.Compiler.Ast
         public AstExpressionNode Value { get; private set; }
     }
 
+    [Serializable]
     public class AstStatementBreakNode : AstStatementNode
     {
 
     }
 
+    [Serializable]
     public class AstStatementContinueNode : AstStatementNode
     {
 
     }
 
     // Loops
+    [Serializable]
     public class AstStatementLoopNode: AstStatementNode
     {
         public AstStatementLoopNode(AstStatementNode[] statements)
@@ -71,6 +78,7 @@ namespace Nord.Compiler.Ast
     }
     
     // Declarations
+    [Serializable]
     public class AstStatementLetNode : AstStatementNode
     {
         public AstStatementLetNode(Either<AstTypeDeclaratorNode, AstDestructuringPatternNode> declarator, AstExpressionNode value)
@@ -83,6 +91,7 @@ namespace Nord.Compiler.Ast
         public AstExpressionNode Value { get; private set; }
     }
 
+    [Serializable]
     public class AstStatementClassNode : AstStatementNode
     {
         public AstStatementClassNode(string name, AstStatementTopLevelNode[] body)
@@ -95,6 +104,7 @@ namespace Nord.Compiler.Ast
         public AstStatementTopLevelNode[] Body { get; private set; }
     }
 
+    [Serializable]
     public class AstStatementUseNode : AstStatementNode
     {
         public AstStatementUseNode(Either<string, AstDestructuringPatternNode> @alias, string @from)
@@ -107,6 +117,7 @@ namespace Nord.Compiler.Ast
         public string From { get; private set; }
     }
 
+    [Serializable]
     public class AstStatementTopLevelNode : AstStatementNode
     {
         public AstStatementTopLevelNode(AstModifier[] modifiers, AstStatementNode statement)

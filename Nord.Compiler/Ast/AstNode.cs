@@ -5,50 +5,71 @@ using LanguageExt;
 
 namespace Nord.Compiler.Ast
 {
+    [Serializable]
     public class AstNode
     {
     }
 
+    [Serializable]
+    public class AstDocumentNode : AstNode
+    {
+        public AstDocumentNode(AstStatementTopLevelNode[] statements)
+        {
+            Statements = statements;
+        }
+
+        public AstStatementTopLevelNode[] Statements { get; private set; }
+    }
+
+    [Serializable]
     public class AstDestructuringPatternNode : AstNode
     {
     }
 
+    [Serializable]
     public class AstDestructuringPatternBindingElement : AstNode
     {
-        public AstDestructuringPatternBindingElement(string name, Either<string, AstDestructuringPatternNode> @alias)
+        public AstDestructuringPatternBindingElement(string name, Either<string, AstDestructuringPatternNode>? @alias)
         {
             Name = name;
-            Alias = alias;
+
+            if (@alias != null)
+                Alias = alias.Value;
+            else
+                Alias = name;
         }
 
         public string Name { get; private set; }
-        public Option<Either<string, AstDestructuringPatternNode>> Alias { get; private set; }
+        public Either<string, AstDestructuringPatternNode> Alias { get; private set; }
     }
 
+    [Serializable]
     public class AstDestructuringArrayPatternNode : AstDestructuringPatternNode
     {
-        public AstDestructuringArrayPatternNode(string[] names, string rest)
+        public AstDestructuringArrayPatternNode(Either<string, AstDestructuringPatternNode>[] aliases, string rest)
         {
-            Names = names;
+            Aliases = aliases;
             Rest = rest;
         }
 
-        public string[] Names { get; private set; }
+        public Either<string, AstDestructuringPatternNode>[] Aliases { get; private set; }
         public Option<string> Rest { get; private set; }
     }
 
+    [Serializable]
     public class AstDestructuringTuplePatternNode : AstDestructuringPatternNode
     {
-        public AstDestructuringTuplePatternNode(string[] names, string rest)
+        public AstDestructuringTuplePatternNode(Either<string, AstDestructuringPatternNode>[] aliases, string rest)
         {
-            Names = names;
+            Aliases = aliases;
             Rest = rest;
         }
 
-        public string[] Names { get; private set; }
+        public Either<string, AstDestructuringPatternNode>[] Aliases { get; private set; }
         public Option<string> Rest { get; private set; }
     }
 
+    [Serializable]
     public class AstDestructuringObjectPetternNode : AstDestructuringPatternNode
     {
         public AstDestructuringObjectPetternNode(AstDestructuringPatternBindingElement[] bindingElements, string rest)

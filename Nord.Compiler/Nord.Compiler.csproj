@@ -16,4 +16,7 @@
     <Content Include="..\Documentation\Ast.txt" />
     <Content Include="..\Documentation\TypeSystem.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Visitor" />
+  </ItemGroup>
 </Project>

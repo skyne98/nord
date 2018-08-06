@@ -6,11 +6,13 @@ using LanguageExt;
 
 namespace Nord.Compiler.Ast
 {
+    [Serializable]
     public class AstTypeNode: AstNode
     {
 
     }
 
+    [Serializable]
     public class AstTypeDeclaratorNode : AstNode
     {
         public AstTypeDeclaratorNode(string name, AstTypeNode type = null)
@@ -23,6 +25,7 @@ namespace Nord.Compiler.Ast
         public Option<AstTypeNode> Type { get; private set; }
     }
 
+    [Serializable]
     public class AstTypeReferenceNode : AstTypeNode
     {
         public AstTypeReferenceNode(string name, AstTypeReferenceNode[] arguments)
@@ -35,6 +38,7 @@ namespace Nord.Compiler.Ast
         public AstTypeReferenceNode[] Arguments { get; private set; }
     }
 
+    [Serializable]
     public class AstTypeParameterNode : AstTypeNode
     {
         public AstTypeParameterNode(string name, AstTypeReferenceNode constraint = null)
