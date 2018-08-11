@@ -1,0 +1,15 @@
+﻿{
+    "definitions": {
+        "Statement": {
+            "parameters": {
+                "position": "int"
+            }
+        },
+        "StatementExpression": {
+            "parent": "Statement",
+            "parameters": {
+                "expression": "string"
+            }
+        }
+    }
+}

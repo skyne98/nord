@@ -13,10 +13,6 @@
     <PackageReference Include="Superpower" Version="2.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\Documentation\Ast.txt" />
-    <Content Include="..\Documentation\TypeSystem.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Visitor" />
+    <Content Include="..\Documentation\Parser.txt" />
   </ItemGroup>
 </Project>

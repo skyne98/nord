@@ -1,0 +1,3 @@
+# Potential parser imprevements
+1. Store AST data in the separate document -> Not Yet
+2. Generate both ast and visitor from that file -> Not Yet
