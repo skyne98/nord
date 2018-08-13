@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using LanguageExt;
-using Nord.Compiler.Generated.Ast;
+using Nord.Compiler.Generated.Ast.Nodes;
 
 namespace Nord.Compiler.Generated.Ast.Statements
 {
@@ -13,7 +13,7 @@ namespace Nord.Compiler.Generated.Ast.Statements
             private set;
         }
 
-        public override SyntaxStatement Copy()
+        public override SyntaxNode Copy()
         {
             var copy = (SyntaxStatementExpression)(base.Copy());
             copy.Expression = this.Expression;

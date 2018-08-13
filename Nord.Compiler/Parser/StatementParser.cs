@@ -4,6 +4,7 @@ using System.Text;
 using LanguageExt;
 using Nord.Compiler.Ast;
 using Nord.Compiler.Lexer;
+using Nord.Compiler.Syntax;
 using Superpower;
 using Superpower.Parsers;
 
@@ -12,36 +13,36 @@ namespace Nord.Compiler.Parser
     public class StatementParser
     {
         // Modifiers
-        public static TokenListParser<TokenType, AstModifier> VisibilityModifier { get; } =
+        public static TokenListParser<TokenType, SyntaxModifier> VisibilityModifier { get; } =
             from keyword in Token.EqualTo(TokenType.PublicKeyword)
                 .Or(Token.EqualTo(TokenType.PrivateKeyword))
             select keyword.ToStringValue() == "pub" 
-                ? AstModifier.Public 
-                : AstModifier.Private;
+                ? SyntaxModifier.Public 
+                : SyntaxModifier.Private;
 
-        public static TokenListParser<TokenType, AstModifier> OpenModifier { get; } =
+        public static TokenListParser<TokenType, SyntaxModifier> OpenModifier { get; } =
             from open in Token.EqualTo(TokenType.OpenKeyword)
-            select AstModifier.Open;
+            select SyntaxModifier.Open;
         
-        public static TokenListParser<TokenType, AstModifier> AbstractModifier { get; } =
+        public static TokenListParser<TokenType, SyntaxModifier> AbstractModifier { get; } =
             from abs in Token.EqualTo(TokenType.AbstractKeyword)
-            select AstModifier.Abstract;
+            select SyntaxModifier.Abstract;
 
-        public static TokenListParser<TokenType, AstModifier> FinalModifier { get; } =
+        public static TokenListParser<TokenType, SyntaxModifier> FinalModifier { get; } =
             from final in Token.EqualTo(TokenType.FinalKeyword)
-            select AstModifier.Final;
+            select SyntaxModifier.Final;
 
-        public static TokenListParser<TokenType, AstModifier[]> Modifiers { get; } =
+        public static TokenListParser<TokenType, SyntaxModifier[]> Modifiers { get; } =
             from visibility in VisibilityModifier.Optional()
             from open in OpenModifier.Optional()
             from abs in AbstractModifier.Optional()
             from final in FinalModifier.Optional()
-            select (new Func<AstModifier[]>(() => {
-                var list = new List<AstModifier>();
+            select (new Func<SyntaxModifier[]>(() => {
+                var list = new List<SyntaxModifier>();
                 if (visibility != null)
                     list.Add(visibility.Value);
                 else
-                    list.Add(AstModifier.Private);
+                    list.Add(SyntaxModifier.Private);
                 if (open != null)
                     list.Add(open.Value);
                 if (abs != null)

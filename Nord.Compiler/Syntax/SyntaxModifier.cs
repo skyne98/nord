@@ -1,9 +1,9 @@
 ﻿using System;
 
-namespace Nord.Compiler.Ast
+namespace Nord.Compiler.Syntax
 {
     [Serializable]
-    public enum AstModifier
+    public enum SyntaxModifier
     {
         None = 0,
         Public,

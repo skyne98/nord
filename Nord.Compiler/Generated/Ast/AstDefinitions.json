@@ -1,14 +1,93 @@
 ﻿{
     "definitions": {
+        "Node": {
+            
+        },
         "Statement": {
-            "parameters": {
-                "position": "int"
-            }
+            "parent": "Node"
         },
         "StatementExpression": {
             "parent": "Statement",
             "parameters": {
                 "expression": "string"
+            }
+        },
+        "StatementFunction": {
+            "parent": "Statement",
+            "parameters": {
+                "name": "string",
+                "typeParameters": "SyntaxTypeParameter[]",
+                "parameters": "SyntaxTypeDeclarator[]",
+                "return": "Option<SyntaxTypeReference>",
+                "body": "SyntaxStatement[]"
+            }
+        },
+        "StatementReturn": {
+            "parent": "Statement",
+            "parameters": {
+                "expression": "SyntaxExpression"
+            }
+        },
+        "StatementBreak": {
+            "parent": "Statement"
+        },
+        "StatementContinue": {
+            "parent": "Statement"
+        },
+        "StatementLoop": {
+            "parent": "Statement",
+            "parameters": {
+                "body": "SyntaxStatement[]"
+            }
+        },
+        "StatementLet": {
+            "parent": "Statement",
+            "parameters": {
+                "expression": "SyntaxExpression"
+            }
+        },
+        "StatementLetDestructuring": {
+            "parent": "StatementLet",
+            "parameters": {
+                "pattern": "SyntaxDestructuringPattern"
+            }
+        },
+        "StatementLetDeclarator": {
+            "parent": "StatementLet",
+            "parameters": {
+                "declarator": "SyntaxTypeDeclarator"
+            }
+        },
+        "StatementClassDeclaration": {
+            "parent": "Statement",
+            "parameters": {
+                "name": "string",
+                "body": "SyntaxStatementTopLevel[]"
+            }
+        },
+        "StatementUse": {
+            "parent": "Statement",
+            "parameters": {
+                "from": "string"
+            }
+        },
+        "StatementUseAlias": {
+            "parent": "StatementUse",
+            "parameters": {
+                "alias": "string"
+            }
+        },
+        "StatementUseDestructuring": {
+            "parent": "StatementUse",
+            "parameters": {
+                "pattern": "SyntaxDestructuringPattern"
+            }
+        },
+        "StatementTopLevel": {
+            "parent": "Statement",
+            "parameters": {
+                "modifiers": "SyntaxModifier[]",
+                "statement": "SyntaxStatement"
             }
         }
     }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using LanguageExt;
 using LanguageExt.ClassInstances;
+using Nord.Compiler.Syntax;
 
 namespace Nord.Compiler.Ast
 {
@@ -120,13 +121,13 @@ namespace Nord.Compiler.Ast
     [Serializable]
     public class AstStatementTopLevelNode : AstStatementNode
     {
-        public AstStatementTopLevelNode(AstModifier[] modifiers, AstStatementNode statement)
+        public AstStatementTopLevelNode(SyntaxModifier[] modifiers, AstStatementNode statement)
         {
             Modifiers = modifiers;
             Statement = statement;
         }
         
-        public AstModifier[] Modifiers { get; private set; }
+        public SyntaxModifier[] Modifiers { get; private set; }
         public AstStatementNode Statement { get; private set; }
     }
 }
