@@ -3,6 +3,42 @@
         "Node": {
             
         },
+        "Document": {
+            "parent": "Node",
+            "parameters": {
+                "statements": "SyntaxStatementTopLevel[]"
+            }
+        },
+        "DestructuringPattern": {
+            "parent": "Node"
+        },
+        "DestructuringPatternBindingElement": {
+            "parent": "Node",
+            "parameters": {
+                "alias": "Either<string, SyntaxDestructuringPattern>"
+            }
+        },
+        "DestructuringArrayPattern": {
+            "parent": "DestructuringPattern",
+            "parameters": {
+                "aliases": "Either<string, SyntaxDestructuringPattern>[]",
+                "rest": "Option<string>"
+            }
+        },
+        "DestructuringTuplePatternNode": {
+            "parent": "DestructuringPattern",
+            "parameters": {
+                "aliases": "Either<string, SyntaxDestructuringPattern>[]",
+                "rest": "Option<string>"
+            }
+        },
+        "DestructuringObjectPattern": {
+            "parent": "DestructuringPattern",
+            "parameters": {
+                "bindingElements": "SyntaxDestructuringPatternBindingElement[]",
+                "rest": "Option<string>"
+            }
+        },
         "Statement": {
             "parent": "Node"
         },
@@ -89,6 +125,139 @@
                 "modifiers": "SyntaxModifier[]",
                 "statement": "SyntaxStatement"
             }
+        },
+        "Type": {
+            "parent": "Node"
+        },
+        "TypeDeclarator": {
+            "parent": "Node",
+            "parameters": {
+                "name": "string",
+                "type": "SyntaxType"
+            }
+        },
+        "TypeReference": {
+            "parent": "Type",
+            "parameters": {
+                "name": "string",
+                "constraint": "SyntaxTypeReference"
+            }
+        },
+        "TypeParameter": {
+            "parent": "Type",
+            "parameters": {
+                "name": "string",
+                "constraint": "SyntaxTypeReference"
+            }
+        },
+        "Expression": {
+            "parent": "Node"
+        },
+        "ExpressionLiteral": {
+            "parent": "Expression"
+        },
+        "ExpressionLiteralFloat": {
+            "parent": "ExpressionLiteral",
+            "parameters": {
+                "value": "float"
+            }
+        },
+        "ExpressionLiteralInteger": {
+            "parent": "ExpressionLiteral",
+            "parameters": {
+                "value": "int"
+            }
+        },
+        "ExpressionLiteralBoolean": {
+            "parent": "ExpressionLiteral",
+            "parameters": {
+                "value": "bool"
+            }
+        },
+        "ExpressionLiteralString": {
+            "parent": "ExpressionLiteral",
+            "parameters": {
+                "value": "string"
+            }
+        },
+        "ExpressionLiteralIdentifier": {
+            "parent": "ExpressionLiteral",
+            "parameters": {
+                "name": "string"
+            }
+        },
+        "ExpressionIf": {
+            "parent": "Expression",
+            "parameters": {
+                "condition": "SyntaxExpression",
+                "then": "SyntaxExpression",
+                "else": "SyntaxExpression"
+            }
+        },
+        "ExpressionBinary": {
+            "parent": "Expression",
+            "parameters": {
+                "operator": "string",
+                "left": "SyntaxExpression",
+                "right": "SyntaxExpression"
+            }
+        },
+        "ExpressionUnary": {
+            "parent": "Expression",
+            "parameters": {
+                "operator": "string",
+                "value": "SyntaxExpression"
+            }
+        },
+        "ExpressionPostfix": {
+            "parent": "Expression"
+        },
+        "ExpressionCall": {
+            "parent": "ExpressionPostfix",
+            "parameters": {
+                "callee": "SyntaxExpression",
+                "typeParameters": "SyntaxTypeReference[]",
+                "parameters": "SyntaxExpression[]"
+            }
+        },
+        "ExpressionMember": {
+            "parent": "ExpressionPostfix",
+            "parameters": {
+                "callee": "SyntaxExpression",
+                "index": "SyntaxExpression"
+            }
+        },
+        "ExpressionProperty": {
+            "parent": "ExpressionPostfix",
+            "parameters": {
+                "left": "SyntaxExpression",
+                "name": "string"
+            }
+        },
+        "ExpressionAs": {
+            "parent": "Expression",
+            "parameters": {
+                "expression": "SyntaxExpression",
+                "type": "SyntaxTypeReference"
+            }
+        },
+        "Modifier": {
+            "parent": "Node"
+        },
+        "ModifierPublic": {
+            "parent": "Modifier"
+        },
+        "ModifierPrivate": {
+            "parent": "Modifier"
+        },
+        "ModifierOpen": {
+            "parent": "Modifier"
+        },
+        "ModifierAbstract": {
+            "parent": "Modifier"
+        },
+        "ModifierFinal": {
+            "parent": "Modifier"
         }
     }
 }

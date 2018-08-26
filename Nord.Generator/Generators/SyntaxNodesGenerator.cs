@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -195,6 +197,20 @@ namespace Nord.Generator.Generators
                 
                 classNode = classNode.AddMembers(methodDeclaration);
             }
+            
+            // Find nodes in parameters
+            model.Parameters.ToList().ForEach(p =>
+            {
+                var possibleParameterModels = models
+                    .Where(pm => p.Value.Contains(pm.GetClassName()))
+                    .Where(pm => pm.GetClassName() != className)
+                    .Where(pm => pm.GetNamespace(models) != model.GetNamespace(models));
+                
+                usedModels.AddRange(possibleParameterModels);
+            });
+            
+            // Clean up the used nodes
+            usedModels = usedModels.Distinct().ToList();
                 
             // Generate namespace
             var namespaceNode = (NamespaceDeclarationSyntax)generator.NamespaceDeclaration(model.GetNamespace(models));
@@ -205,7 +221,7 @@ namespace Nord.Generator.Generators
             compilationUnit = compilationUnit.AddUsings((UsingDirectiveSyntax) usingSystem);
             compilationUnit = compilationUnit.AddUsings((UsingDirectiveSyntax) usingCollections);
             compilationUnit = compilationUnit.AddUsings((UsingDirectiveSyntax) usingLanguageExt);
-            foreach (var usedNamespace in usedModels.Select(um => um.GetNamespace(models)).Distinct())
+            foreach (var usedNamespace in usedModels.Select(um => um.GetNamespace(models)))
             {
                 compilationUnit = compilationUnit.AddUsings(
                     (UsingDirectiveSyntax) generator.NamespaceImportDeclaration(usedNamespace));
@@ -223,6 +239,14 @@ namespace Nord.Generator.Generators
                 ? Path.Combine(AstClassesDirectory, parentName.ValueUnsafe().Pascalize().Pluralize())
                 : AstClassesDirectory;
             var filePath = Path.Combine(fileDirectory, className);
+            
+            // Log to console
+            Console.WriteLine($"Generating {classNode.Identifier.Text}");
+            Console.WriteLine($"\tParent {parentClassName.IfNone("None")}");
+            foreach (var usedModel in usedModels)
+            {
+                Console.WriteLine($"\tUsed {usedModel.Name} from {usedModel.GetNamespace(models)}");
+            }
 
             if (Directory.Exists(fileDirectory) == false)
                 Directory.CreateDirectory(fileDirectory);
