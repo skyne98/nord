@@ -140,14 +140,14 @@
             "parent": "Type",
             "parameters": {
                 "name": "string",
-                "constraint": "SyntaxTypeReference"
+                "arguments": "SyntaxTypeReference[]"
             }
         },
         "TypeParameter": {
             "parent": "Type",
             "parameters": {
                 "name": "string",
-                "constraint": "SyntaxTypeReference"
+                "constraint": "Option<SyntaxTypeReference>"
             }
         },
         "Expression": {
@@ -156,10 +156,10 @@
         "ExpressionLiteral": {
             "parent": "Expression"
         },
-        "ExpressionLiteralFloat": {
+        "ExpressionLiteralDouble": {
             "parent": "ExpressionLiteral",
             "parameters": {
-                "value": "float"
+                "value": "double"
             }
         },
         "ExpressionLiteralInteger": {

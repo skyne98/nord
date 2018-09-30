@@ -159,6 +159,7 @@ namespace Nord.Generator.Generators
                         SyntaxFactory.ParseTypeName(parameter.Value)
                     )
                     );
+                methodDeclaration = methodDeclaration.AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword));
                 var body = SyntaxFactory.Block();
                 body = body.AddStatements(
                     (StatementSyntax) generator.LocalDeclarationStatement(

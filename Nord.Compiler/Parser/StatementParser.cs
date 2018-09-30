@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 using LanguageExt;
 using Nord.Compiler.Ast;
+using Nord.Compiler.Generated.Ast.Modifiers;
+using Nord.Compiler.Generated.Ast.Nodes;
 using Nord.Compiler.Lexer;
 using Nord.Compiler.Syntax;
 using Superpower;
@@ -17,20 +19,20 @@ namespace Nord.Compiler.Parser
             from keyword in Token.EqualTo(TokenType.PublicKeyword)
                 .Or(Token.EqualTo(TokenType.PrivateKeyword))
             select keyword.ToStringValue() == "pub" 
-                ? SyntaxModifier.Public 
-                : SyntaxModifier.Private;
+                ? (SyntaxModifier)new SyntaxModifierPublic() 
+                : (SyntaxModifier)new SyntaxModifierPrivate();
 
         public static TokenListParser<TokenType, SyntaxModifier> OpenModifier { get; } =
             from open in Token.EqualTo(TokenType.OpenKeyword)
-            select SyntaxModifier.Open;
+            select (SyntaxModifier)new SyntaxModifierOpen();
         
         public static TokenListParser<TokenType, SyntaxModifier> AbstractModifier { get; } =
             from abs in Token.EqualTo(TokenType.AbstractKeyword)
-            select SyntaxModifier.Abstract;
+            select (SyntaxModifier)new SyntaxModifierAbstract();
 
         public static TokenListParser<TokenType, SyntaxModifier> FinalModifier { get; } =
             from final in Token.EqualTo(TokenType.FinalKeyword)
-            select SyntaxModifier.Final;
+            select (SyntaxModifier)new SyntaxModifierFinal();
 
         public static TokenListParser<TokenType, SyntaxModifier[]> Modifiers { get; } =
             from visibility in VisibilityModifier.Optional()
@@ -42,7 +44,7 @@ namespace Nord.Compiler.Parser
                 if (visibility != null)
                     list.Add(visibility.Value);
                 else
-                    list.Add(SyntaxModifier.Private);
+                    list.Add(new SyntaxModifierPrivate());
                 if (open != null)
                     list.Add(open.Value);
                 if (abs != null)

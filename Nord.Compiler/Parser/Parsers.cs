@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http.Headers;
 using LanguageExt;
 using Nord.Compiler.Ast;
+using Nord.Compiler.Generated.Ast.Nodes;
 using Nord.Compiler.Lexer;
 using Nord.Compiler.Parser;
 using Superpower;
@@ -14,7 +15,7 @@ using Superpower.Parsers;
 
 public static class Parsers
 {
-    public static TokenListParser<TokenType, AstStatementNode[]> StatementsBlock { get; } =
+    public static TokenListParser<TokenType, SyntaxStatement[]> StatementsBlock { get; } =
         from statements in Parse.Ref(() => StatementParser.Statement)
             .ManyDelimitedBy(Token.EqualTo(TokenType.Semicolon).OptionalOrDefault())
         select statements;
