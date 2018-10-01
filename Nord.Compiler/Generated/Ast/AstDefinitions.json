@@ -45,7 +45,7 @@
         "StatementExpression": {
             "parent": "Statement",
             "parameters": {
-                "expression": "string"
+                "expression": "SyntaxExpression"
             }
         },
         "StatementFunction": {
@@ -104,6 +104,7 @@
         "StatementUse": {
             "parent": "Statement",
             "parameters": {
+                "alias": "Either<string, SyntaxDestructuringPattern>",
                 "from": "string"
             }
         },
@@ -240,24 +241,6 @@
                 "expression": "SyntaxExpression",
                 "type": "SyntaxTypeReference"
             }
-        },
-        "Modifier": {
-            "parent": "Node"
-        },
-        "ModifierPublic": {
-            "parent": "Modifier"
-        },
-        "ModifierPrivate": {
-            "parent": "Modifier"
-        },
-        "ModifierOpen": {
-            "parent": "Modifier"
-        },
-        "ModifierAbstract": {
-            "parent": "Modifier"
-        },
-        "ModifierFinal": {
-            "parent": "Modifier"
         }
     }
 }

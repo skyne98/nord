@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Text;
 using LanguageExt;
 using Nord.Compiler.Ast;
-using Nord.Compiler.Generated.Ast.Modifiers;
 using Nord.Compiler.Generated.Ast.Nodes;
+using Nord.Compiler.Generated.Ast.StatementLets;
+using Nord.Compiler.Generated.Ast.Statements;
+using Nord.Compiler.Generated.Ast.Types;
 using Nord.Compiler.Lexer;
-using Nord.Compiler.Syntax;
 using Superpower;
 using Superpower.Parsers;
 
@@ -19,20 +20,20 @@ namespace Nord.Compiler.Parser
             from keyword in Token.EqualTo(TokenType.PublicKeyword)
                 .Or(Token.EqualTo(TokenType.PrivateKeyword))
             select keyword.ToStringValue() == "pub" 
-                ? (SyntaxModifier)new SyntaxModifierPublic() 
-                : (SyntaxModifier)new SyntaxModifierPrivate();
+                ? SyntaxModifier.Public 
+                : SyntaxModifier.Private;
 
         public static TokenListParser<TokenType, SyntaxModifier> OpenModifier { get; } =
             from open in Token.EqualTo(TokenType.OpenKeyword)
-            select (SyntaxModifier)new SyntaxModifierOpen();
+            select SyntaxModifier.Open;
         
         public static TokenListParser<TokenType, SyntaxModifier> AbstractModifier { get; } =
             from abs in Token.EqualTo(TokenType.AbstractKeyword)
-            select (SyntaxModifier)new SyntaxModifierAbstract();
+            select SyntaxModifier.Abstract;
 
         public static TokenListParser<TokenType, SyntaxModifier> FinalModifier { get; } =
             from final in Token.EqualTo(TokenType.FinalKeyword)
-            select (SyntaxModifier)new SyntaxModifierFinal();
+            select SyntaxModifier.Final;
 
         public static TokenListParser<TokenType, SyntaxModifier[]> Modifiers { get; } =
             from visibility in VisibilityModifier.Optional()
@@ -44,7 +45,7 @@ namespace Nord.Compiler.Parser
                 if (visibility != null)
                     list.Add(visibility.Value);
                 else
-                    list.Add(new SyntaxModifierPrivate());
+                    list.Add(SyntaxModifier.Private);
                 if (open != null)
                     list.Add(open.Value);
                 if (abs != null)
@@ -56,11 +57,12 @@ namespace Nord.Compiler.Parser
             }))();
         
         // Statements
-        public static TokenListParser<TokenType, AstStatementExpressionNode> ExpressionStatement { get; } =
+        public static TokenListParser<TokenType, SyntaxStatementExpression> ExpressionStatement { get; } =
             from expression in ExpressionParser.Expression
-            select new AstStatementExpressionNode(expression);
+            select new SyntaxStatementExpression()
+                .WithExpression(expression);
 
-        public static TokenListParser<TokenType, AstStatementFunctionNode> FnStatement { get; } =
+        public static TokenListParser<TokenType, SyntaxStatementFunction> FnStatement { get; } =
             from fn in Token.EqualTo(TokenType.FnKeyword)
             from name in Token.EqualTo(TokenType.Identifier)
             from typeParameters in TypeParser.TypeParameters.OptionalOrDefault()
@@ -72,79 +74,97 @@ namespace Nord.Compiler.Parser
                     from returnAnnotation in TypeParser.TypeReference
                     select returnAnnotation)
                 .OptionalOrDefault()
-                .Select(an => an != null ? Option<AstTypeReferenceNode>.Some(an) : Option<AstTypeReferenceNode>.None)
+                .Select(an => an != null ? Option<SyntaxTypeReference>.Some(an) : Option<SyntaxTypeReference>.None)
             from openCurly in Token.EqualTo(TokenType.OpenCurly)
             from statements in Parsers.StatementsBlock
             from closeCurly in Token.EqualTo(TokenType.CloseCurly)
-            select new AstStatementFunctionNode(name.ToStringValue(), 
-                typeParameters ?? new AstTypeParameterNode[]{}, 
-                parameters, 
-                returnType, 
-                statements);
+            select new SyntaxStatementFunction()
+                .WithName(name.ToStringValue())
+                .WithTypeParameters(typeParameters ?? new SyntaxTypeParameter[] { })
+                .WithParameters(parameters)
+                .WithReturn(returnType)
+                .WithBody(statements);
 
-        public static TokenListParser<TokenType, AstStatementLetNode> LetStatement { get; } =
+        public static TokenListParser<TokenType, SyntaxStatementLet> LetStatement { get; } =
             from letKeyword in Token.EqualTo(TokenType.LetKeyword)
             from declarator in TypeParser.Declarator
-                .Select(dec => (Either<AstTypeDeclaratorNode, AstDestructuringPatternNode>) dec)
+                .Select(dec => (Either<SyntaxTypeDeclarator, SyntaxDestructuringPattern>) dec)
                 .Or(Parsers.DestructuringPattern
-                    .Select(dp => (Either<AstTypeDeclaratorNode, AstDestructuringPatternNode>) dp))
+                    .Select(dp => (Either<SyntaxTypeDeclarator, SyntaxDestructuringPattern>) dp))
             from equalsOperator in Token.EqualTo(TokenType.EqualsOperator)
             from value in ExpressionParser.Expression
-            select new AstStatementLetNode(declarator, value);
+            select declarator.Match(
+                right =>
+                    new SyntaxStatementLetDestructuring()
+                        .WithPattern(right)
+                        .WithExpression(value),
+                left => 
+                    new SyntaxStatementLetDeclarator()
+                        .WithDeclarator(left)
+                        .WithExpression(value)
+                );
 
-        public static TokenListParser<TokenType, AstStatementReturnNode> ReturnStatement { get; } =
+        public static TokenListParser<TokenType, SyntaxStatementReturn> ReturnStatement { get; } =
             from returnKeywork in Token.EqualTo(TokenType.ReturnKeyword)
             from value in ExpressionParser.Expression
-            select new AstStatementReturnNode(value);
+            select new SyntaxStatementReturn()
+                .WithExpression(value);
 
-        public static TokenListParser<TokenType, AstStatementBreakNode> BreakStatement { get; } =
+        public static TokenListParser<TokenType, SyntaxStatementBreak> BreakStatement { get; } =
             from breakKeywork in Token.EqualTo(TokenType.BreakKeyword)
-            select new AstStatementBreakNode();
+            select new SyntaxStatementBreak();
 
-        public static TokenListParser<TokenType, AstStatementContinueNode> ContinueStatement { get; } =
+        public static TokenListParser<TokenType, SyntaxStatementContinue> ContinueStatement { get; } =
             from continueKeyword in Token.EqualTo(TokenType.ContinueKeyword)
-            select new AstStatementContinueNode();
+            select new SyntaxStatementContinue();
 
-        public static TokenListParser<TokenType, AstStatementLoopNode> LoopStatement { get; } =
+        public static TokenListParser<TokenType, SyntaxStatementLoop> LoopStatement { get; } =
             from loopKeyword in Token.EqualTo(TokenType.LoopKeyword)
             from openCurly in Token.EqualTo(TokenType.OpenCurly)
             from body in Parsers.StatementsBlock
             from closeCurly in Token.EqualTo(TokenType.CloseCurly)
-            select new AstStatementLoopNode(body);
+            select new SyntaxStatementLoop()
+                .WithBody(body);
         
-        public static TokenListParser<TokenType, AstStatementNode> Statement { get; } =
-            LoopStatement.Select(s => (AstStatementNode) s)
-                .Or(LetStatement.Select(l => (AstStatementNode) l))
-                .Or(FnStatement.Select(fn => (AstStatementNode) fn))
-                .Or(ReturnStatement.Select(r => (AstStatementNode) r))
-                .Or(BreakStatement.Select(b => (AstStatementNode) b))
-                .Or(ContinueStatement.Select(c => (AstStatementNode) c))
-                .Or(ExpressionStatement.Select(e => (AstStatementNode) e));
+        public static TokenListParser<TokenType, SyntaxStatement> Statement { get; } =
+            LoopStatement.Select(s => (SyntaxStatement) s)
+                .Or(LetStatement.Select(l => (SyntaxStatement) l))
+                .Or(FnStatement.Select(fn => (SyntaxStatement) fn))
+                .Or(ReturnStatement.Select(r => (SyntaxStatement) r))
+                .Or(BreakStatement.Select(b => (SyntaxStatement) b))
+                .Or(ContinueStatement.Select(c => (SyntaxStatement) c))
+                .Or(ExpressionStatement.Select(e => (SyntaxStatement) e));
         
         // Top-level only statements
-        public static TokenListParser<TokenType, AstStatementClassNode> ClassStatement { get; } =
+        public static TokenListParser<TokenType, SyntaxStatementClassDeclaration> ClassStatement { get; } =
             from classKeyword in Token.EqualTo(TokenType.ClassKeyword)
             from name in Token.EqualTo(TokenType.Identifier)
             from openCurly in Token.EqualTo(TokenType.OpenCurly)
             from body in Parsers.TopLevelStatementBlock
             from closeCurly in Token.EqualTo(TokenType.CloseCurly)
-            select new AstStatementClassNode(name.ToStringValue(), body);
+            select new SyntaxStatementClassDeclaration()
+                .WithName(name.ToStringValue())
+                .WithBody(body);
 
-        public static TokenListParser<TokenType, AstStatementUseNode> UseStatement { get; } =
+        public static TokenListParser<TokenType, SyntaxStatementUse> UseStatement { get; } =
             from useKeyword in Token.EqualTo(TokenType.UseKeyword)
             from alias in Token.EqualTo(TokenType.Identifier)
-                .Select(alias => (Either<string, AstDestructuringPatternNode>) alias.ToStringValue())
+                .Select(alias => (Either<string, SyntaxDestructuringPattern>) alias.ToStringValue())
                 .Or(Parsers.DestructuringPattern
-                    .Select(dp => (Either<string, AstDestructuringPatternNode>) dp))
+                    .Select(dp => (Either<string, SyntaxDestructuringPattern>) dp))
             from @from in Token.EqualTo(TokenType.FromKeyword)
             from path in Token.EqualTo(TokenType.String)
-            select new AstStatementUseNode(alias, path.ToStringValue());
+            select new SyntaxStatementUse()
+                .WithAlias(alias)
+                .WithFrom(path.ToStringValue());
         
-        public static TokenListParser<TokenType, AstStatementTopLevelNode> TopLevelStatement { get; } =
+        public static TokenListParser<TokenType, SyntaxStatementTopLevel> TopLevelStatement { get; } =
             from modifiers in Modifiers
-            from statement in FnStatement.Select(fn => (AstStatementNode) fn)
-                .Or(ClassStatement.Select(c => (AstStatementNode) c))
-                .Or(UseStatement.Select(u => (AstStatementNode) u))
-            select new AstStatementTopLevelNode(modifiers, statement);
+            from statement in FnStatement.Select(fn => (SyntaxStatement) fn)
+                .Or(ClassStatement.Select(c => (SyntaxStatement) c))
+                .Or(UseStatement.Select(u => (SyntaxStatement) u))
+            select new SyntaxStatementTopLevel()
+                .WithModifiers(modifiers)
+                .WithStatement(statement);
     }
 }

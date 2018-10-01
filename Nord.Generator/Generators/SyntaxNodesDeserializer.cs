@@ -9,7 +9,7 @@ namespace Nord.Generator.Generators
 {
     public class SyntaxNodesDeserializer
     {
-        public readonly static string AstDefinitionsFile = Path.GetFullPath("../Nord.Compiler/Generated/Ast/AstDefinitions.json");
+        public readonly static string AstDefinitionsFile = Path.GetFullPath(Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "../../../../Nord.Compiler/Generated/Ast/AstDefinitions.json"));
 
         public static List<SyntaxNodeModel> GetSyntaxNodes()
         {

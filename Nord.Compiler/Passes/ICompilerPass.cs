@@ -1,9 +1,10 @@
 ﻿using Nord.Compiler.Ast;
+using Nord.Compiler.Generated.Ast;
 
 namespace Nord.Compiler.Pass
 {
     public interface ICompilerPass
     {
-        AstNode Run(Context context);
+        SyntaxNode Run(Context context);
     }
 }

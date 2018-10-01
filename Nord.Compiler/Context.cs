@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using LanguageExt;
 using Nord.Compiler.Ast;
+using Nord.Compiler.Generated.Ast;
 using Nord.Compiler.Pass;
 
 namespace Nord.Compiler
@@ -12,10 +13,10 @@ namespace Nord.Compiler
         private long _variableCounter = 0;
         private long _typeCounter = 0;
         
-        public Context(AstNode ast)
+        public Context(SyntaxNode ast)
         {
             Ast = ast;
-            _cache = new Dictionary<Type, AstNode>();
+            _cache = new Dictionary<Type, SyntaxNode>();
         }
 
         public string GenerateVariableName()
@@ -32,7 +33,7 @@ namespace Nord.Compiler
             return name;
         }
 
-        public AstNode Require<T>() where T: ICompilerPass
+        public SyntaxNode Require<T>() where T: ICompilerPass
         {
             var passType = typeof(T);
             if (_cache.ContainsKey(passType))
@@ -44,8 +45,8 @@ namespace Nord.Compiler
             return result;
         }
 
-        public AstNode Ast { get; set; }
+        public SyntaxNode Ast { get; set; }
 
-        private Dictionary<Type, AstNode> _cache;
+        private Dictionary<Type, SyntaxNode> _cache;
     }
 }

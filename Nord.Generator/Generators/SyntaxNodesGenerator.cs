@@ -17,7 +17,7 @@ namespace Nord.Generator.Generators
 {
     public class SyntaxNodesGenerator
     {
-        public readonly static string AstClassesDirectory = Path.GetFullPath("../Nord.Compiler/Generated/Ast/");
+        public readonly static string AstClassesDirectory = Path.GetFullPath(Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "../../../../Nord.Compiler/Generated/Ast/"));
 
         public static void GenerateSyntaxNodes(List<SyntaxNodeModel> models)
         {
@@ -52,6 +52,7 @@ namespace Nord.Generator.Generators
             var usingSystem = generator.NamespaceImportDeclaration("System");
             var usingCollections = generator.NamespaceImportDeclaration("System.Collections.Generic");
             var usingLanguageExt = generator.NamespaceImportDeclaration("LanguageExt");
+            var usingAst = generator.NamespaceImportDeclaration("Nord.Compiler.Ast");
             var usedModels = new List<SyntaxNodeModel>();
             parent.IfSome(p => usedModels.Add(p));
 
@@ -222,6 +223,7 @@ namespace Nord.Generator.Generators
             compilationUnit = compilationUnit.AddUsings((UsingDirectiveSyntax) usingSystem);
             compilationUnit = compilationUnit.AddUsings((UsingDirectiveSyntax) usingCollections);
             compilationUnit = compilationUnit.AddUsings((UsingDirectiveSyntax) usingLanguageExt);
+            compilationUnit = compilationUnit.AddUsings((UsingDirectiveSyntax) usingAst);
             foreach (var usedNamespace in usedModels.Select(um => um.GetNamespace(models)))
             {
                 compilationUnit = compilationUnit.AddUsings(
