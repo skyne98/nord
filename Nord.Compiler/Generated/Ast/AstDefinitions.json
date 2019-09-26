@@ -15,7 +15,8 @@
         "DestructuringPatternBindingElement": {
             "parent": "Node",
             "parameters": {
-                "alias": "Either<string, SyntaxDestructuringPattern>"
+                "alias": "Either<string, SyntaxDestructuringPattern>",
+                "property": "string"
             }
         },
         "DestructuringArrayPattern": {

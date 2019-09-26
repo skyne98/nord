@@ -36,7 +36,8 @@ namespace Nord.Generator.Generators
             models.ForEach(m => GenerateClass(m, models, generatedUnits, generator));
         }
 
-        private static void GenerateClass(SyntaxNodeModel model, List<SyntaxNodeModel> models, List<CompilationUnitSyntax> compilationUnits,
+        private static void GenerateClass(SyntaxNodeModel model, List<SyntaxNodeModel> models,
+            List<CompilationUnitSyntax> compilationUnits,
             SyntaxGenerator generator)
         {
             // Make names
@@ -47,7 +48,7 @@ namespace Nord.Generator.Generators
             var root = model.GetRootParent(models);
             var rootName = root.Map(r => r.GetName());
             var rootClassName = root.Map(r => r.GetClassName());
-            
+
             // Generate basic usings
             var usingSystem = generator.NamespaceImportDeclaration("System");
             var usingCollections = generator.NamespaceImportDeclaration("System.Collections.Generic");
@@ -57,30 +58,34 @@ namespace Nord.Generator.Generators
             parent.IfSome(p => usedModels.Add(p));
 
             // Generate class
-            var classNode = (ClassDeclarationSyntax)parentClassName.Match(pn => generator.ClassDeclaration(className, 
-                accessibility: Accessibility.Public, 
-                baseType: generator.IdentifierName(pn)), 
-                () => generator.ClassDeclaration(className, 
+            var classNode = (ClassDeclarationSyntax) parentClassName.Match(pn => generator.ClassDeclaration(className,
+                    accessibility: Accessibility.Public,
+                    baseType: generator.IdentifierName(pn)),
+                () => generator.ClassDeclaration(className,
                     accessibility: Accessibility.Public));
-            
+            classNode = classNode.AddAttributeLists(SyntaxFactory.AttributeList()
+                .AddAttributes(
+                    SyntaxFactory.Attribute(SyntaxFactory.IdentifierName("Serializable"))));
+
             // Generate properties
             foreach (var parameter in model.Parameters)
             {
                 var declaration = SyntaxFactory.PropertyDeclaration(
-                    SyntaxFactory.ParseTypeName(parameter.Value), parameter.Key.Pascalize())
+                        SyntaxFactory.ParseTypeName(parameter.Value), parameter.Key.Pascalize())
                     .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
                     .AddAccessorListAccessors(
-                        SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
+                        SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
                         SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
                             .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
                             .AddModifiers(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)));
                 classNode = classNode.AddMembers(declaration);
             }
-            
+
             // Generate copy method
-            var copyDeclaration = (MethodDeclarationSyntax)generator.MethodDeclaration(
+            var copyDeclaration = (MethodDeclarationSyntax) generator.MethodDeclaration(
                 "Copy");
-            copyDeclaration = parentName.Match(pn => 
+            copyDeclaration = parentName.Match(pn =>
                     copyDeclaration
                         .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
                         .AddModifiers(SyntaxFactory.Token(SyntaxKind.OverrideKeyword)),
@@ -88,21 +93,30 @@ namespace Nord.Generator.Generators
                     .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
                     .AddModifiers(SyntaxFactory.Token(SyntaxKind.VirtualKeyword)));
             copyDeclaration = copyDeclaration.WithReturnType(
-                (TypeSyntax) generator.IdentifierName(model.GetBase(models).GetClassName()));
+                (TypeSyntax) generator.IdentifierName("S"));
+            copyDeclaration = copyDeclaration.AddTypeParameterListParameters(SyntaxFactory.TypeParameter("S"));
+            if (parentName.IsNone)
+            {
+                copyDeclaration = copyDeclaration.AddConstraintClauses(SyntaxFactory.TypeParameterConstraintClause("S")
+                    .AddConstraints(SyntaxFactory.TypeConstraint(SyntaxFactory.IdentifierName(model.GetBase(models).GetClassName())))
+                    .AddConstraints(SyntaxFactory.ConstructorConstraint()));
+            }
             var copyBody = SyntaxFactory.Block();
             copyBody = parentName.Match(
                 pn => copyBody.AddStatements(
                     (StatementSyntax) generator.LocalDeclarationStatement(
                         "copy",
-                        generator.CastExpression(
-                            generator.IdentifierName(model.GetClassName()),
-                            generator.InvocationExpression(
+                        SyntaxFactory.BinaryExpression(
+                            SyntaxKind.AsExpression,
+                            SyntaxFactory.InvocationExpression(
                                 SyntaxFactory.MemberAccessExpression(
                                     SyntaxKind.SimpleMemberAccessExpression,
                                     (ExpressionSyntax) generator.BaseExpression(),
-                                    (SimpleNameSyntax) generator.IdentifierName("Copy")
+                                    SyntaxFactory.GenericName("Copy")
+                                        .AddTypeArgumentListArguments(SyntaxFactory.IdentifierName("S"))
                                 )
-                            )
+                            ),
+                        SyntaxFactory.IdentifierName(className)
                         )
                     )
                 ),
@@ -110,9 +124,9 @@ namespace Nord.Generator.Generators
                     (StatementSyntax) generator.LocalDeclarationStatement(
                         "copy",
                         generator.CastExpression(
-                            generator.IdentifierName(model.GetBase(models).GetClassName()),
+                            generator.IdentifierName("S"),
                             generator.ObjectCreationExpression(
-                                SyntaxFactory.ParseTypeName(className)
+                                SyntaxFactory.IdentifierName("S")
                             )
                         )
                     )
@@ -140,7 +154,11 @@ namespace Nord.Generator.Generators
 
             copyBody = copyBody.AddStatements(
                 (StatementSyntax) generator.ReturnStatement(
-                    generator.IdentifierName("copy")
+                    SyntaxFactory.BinaryExpression(
+                        SyntaxKind.AsExpression,
+                        SyntaxFactory.IdentifierName("copy"),
+                        SyntaxFactory.IdentifierName("S")
+                    )
                 )
             );
 
@@ -167,12 +185,17 @@ namespace Nord.Generator.Generators
                         "copy",
                         generator.CastExpression(
                             generator.IdentifierName(model.GetClassName()),
-                            generator.InvocationExpression(
-                                SyntaxFactory.MemberAccessExpression(
-                                    SyntaxKind.SimpleMemberAccessExpression,
-                                    (ExpressionSyntax) generator.ThisExpression(),
-                                    (SimpleNameSyntax) generator.IdentifierName("Copy")
-                                )
+                            SyntaxFactory.BinaryExpression(
+                                SyntaxKind.AsExpression,
+                                SyntaxFactory.InvocationExpression(
+                                    SyntaxFactory.MemberAccessExpression(
+                                        SyntaxKind.SimpleMemberAccessExpression,
+                                        (ExpressionSyntax) generator.BaseExpression(),
+                                        SyntaxFactory.GenericName("Copy")
+                                            .AddTypeArgumentListArguments(SyntaxFactory.IdentifierName(className))
+                                    )
+                                ),
+                                SyntaxFactory.IdentifierName(className)
                             )
                         )
                     )

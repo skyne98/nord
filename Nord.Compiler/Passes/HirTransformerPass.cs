@@ -9,144 +9,148 @@ using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Runtime.InteropServices;
 using LanguageExt;
+using Nord.Compiler.Generated.Ast;
+using Nord.Compiler.Generated.Ast.DestructuringPatterns;
+using Nord.Compiler.Generated.Ast.ExpressionLiterals;
+using Nord.Compiler.Generated.Ast.ExpressionPostfixes;
+using Nord.Compiler.Generated.Ast.Expressions;
+using Nord.Compiler.Generated.Ast.Nodes;
+using Nord.Compiler.Generated.Ast.StatementLets;
+using Nord.Compiler.Generated.Ast.Statements;
 
 namespace Nord.Compiler.Pass
 {
     public class HirTransformerPass : ICompilerPass
     {
-        public AstNode Run(Context context)
+        public SyntaxNode Run(Context context)
         {
             var root = DeepClone(context.Ast);
             return Transform(context, root).FirstOrDefault();
         }
 
-        private AstNode[] Transform(Context context, AstNode node)
+        private SyntaxNode[] Transform(Context context, SyntaxNode node)
         {
             switch (node)
             {
-                case AstDocumentNode documentNode:
-                    return new[] {new AstDocumentNode(documentNode.Statements
-                        .SelectMany(st => Transform(context, st)).Cast<AstStatementTopLevelNode>().ToArray())};
-                case AstStatementNode statementNode:
+                case SyntaxDocument documentNode:
+                    return new[] {new SyntaxDocument().WithStatements(documentNode.Statements
+                        .SelectMany(st => Transform(context, st)).Cast<SyntaxStatementTopLevel>().ToArray())};
+                case SyntaxStatement statementNode:
                     return TransformStatement(context, statementNode);
             }
             
-            return new AstNode[] { DeepClone(node) };
+            return new SyntaxNode[] { DeepClone(node) };
         } 
         
-        private AstNode[] TransformStatement(Context context, AstStatementNode node)
+        private SyntaxNode[] TransformStatement(Context context, SyntaxStatement node)
         {
             switch (node)
             {
-                case AstStatementLetNode letNode:
+                case SyntaxStatementLetDestructuring letDestructuring:
                 {
-                    if (letNode.Declarator.IsRight)
-                    {
-                        return TransformDestructuringLetStatement(context, (AstDestructuringPatternNode) letNode.Declarator, letNode.Value)
-                            .Cast<AstNode>().ToArray();
-                    }
+                    return TransformDestructuringLetStatement(context, letDestructuring.Pattern, letDestructuring.Expression)
+                        .Cast<SyntaxNode>().ToArray();
                     break;
                 }
-                case AstStatementTopLevelNode topLevelNode:
+                case SyntaxStatementTopLevel topLevelNode:
                 {
-                    return new AstNode[]
+                    return new SyntaxNode[]
                     {
-                        new AstStatementTopLevelNode(topLevelNode.Modifiers,
+                        new SyntaxStatementTopLevel()
+                            .WithModifiers(topLevelNode.Modifiers)
+                            .WithStatement(
                             Transform(context, topLevelNode.Statement)
-                                .FirstOrDefault() as AstStatementNode)
+                                .FirstOrDefault() as SyntaxStatement)
                     };
                 }
-                case AstStatementFunctionNode functionNode:
+                case SyntaxStatementFunction functionNode:
                 {
-                    return new[] { new AstStatementFunctionNode(functionNode.Name, 
-                        functionNode.TypeParameters, 
-                        functionNode.Parameters,
-                        functionNode.Return,
-                        functionNode.Body.SelectMany(bs => Transform(context, bs))
-                            .Cast<AstStatementNode>()
+                    return new[] { new SyntaxStatementFunction().WithName(functionNode.Name).WithTypeParameters(functionNode.TypeParameters).WithParameters(functionNode.Parameters).WithReturn(functionNode.Return).WithBody(functionNode.Body.SelectMany(bs => Transform(context, bs))
+                            .Cast<SyntaxStatement>()
                             .ToArray())};
                 }
             }
 
-            return new AstNode[] { DeepClone(node) };
+            return new SyntaxStatement[] { DeepClone(node) };
         }
 
-        private AstStatementLetNode[] TransformDestructuringLetStatement(Context context, AstDestructuringPatternNode pattern,
-            AstExpressionNode value)
+        private SyntaxStatementLet[] TransformDestructuringLetStatement(Context context, SyntaxDestructuringPattern pattern,
+            SyntaxExpression value)
         {
             var letName = context.GenerateVariableName();
-            var letValue = Transform(context, value).FirstOrDefault() as AstExpressionNode;
-            var newLetNode = new AstStatementLetNode(new AstTypeDeclaratorNode(letName), letValue);
-            var members = new List<AstStatementLetNode>() { newLetNode };
+            var letValue = Transform(context, value).FirstOrDefault() as SyntaxExpression;
+            var newLetNode = new SyntaxStatementLetDeclarator().WithDeclarator(new SyntaxTypeDeclarator().WithName(letName)).WithExpression(letValue);
+            var members = new List<SyntaxStatementLet>() { newLetNode };
 
             switch (pattern)
             {
-                case AstDestructuringArrayPatternNode arrayPattern:
+                case SyntaxDestructuringArrayPattern arrayPattern:
                 {
                     int index = 0;
                     foreach (var alias in arrayPattern.Aliases)
                     {
                         alias
                             .IfLeft(name => members.Add(
-                                new AstStatementLetNode(
-                                    new AstTypeDeclaratorNode(name),
-                                    new AstExpressionMemberNode(
-                                        new AstExpressionIdentifierLiteralNode(letName), 
-                                        new AstExpressionLiteralNode<double>(index)))));
+                                new SyntaxStatementLetDeclarator()
+                                    .WithDeclarator(new SyntaxTypeDeclarator()
+                                        .WithName(name))
+                                    .WithExpression(new SyntaxExpressionMember()
+                                        .WithCallee(new SyntaxExpressionLiteralIdentifier().WithName(letName))
+                                        .WithIndex(new SyntaxExpressionLiteralDouble().WithValue(index)))));
                         alias
                             .IfRight(innerPattern => members.AddRange(
                                 TransformDestructuringLetStatement(context, innerPattern, 
-                                    new AstExpressionMemberNode(
-                                        new AstExpressionIdentifierLiteralNode(letName), 
-                                        new AstExpressionLiteralNode<double>(index)))
-                                    .Cast<AstStatementLetNode>()));
+                                    new SyntaxExpressionMember()
+                                        .WithCallee(new SyntaxExpressionLiteralIdentifier().WithName(letName))
+                                        .WithIndex(new SyntaxExpressionLiteralDouble().WithValue(index)))));
 
                         index += 1;
                     }
 
                     break;
                 }
-                case AstDestructuringObjectPetternNode objectPattern:
+                case SyntaxDestructuringObjectPattern objectPattern:
                 {
                     foreach (var binding in objectPattern.BindingElements)
                     {
                         binding.Alias
                             .IfLeft(name => members.Add(
-                                new AstStatementLetNode(
-                                    new AstTypeDeclaratorNode(name),
-                                    new AstExpressionPropertyAccessNode(
-                                        new AstExpressionIdentifierLiteralNode(letName), 
-                                        binding.Name))));
+                                new SyntaxStatementLetDeclarator()
+                                    .WithDeclarator(new SyntaxTypeDeclarator().WithName(name))
+                                    .WithExpression(new SyntaxExpressionProperty()
+                                        .WithLeft(new SyntaxExpressionLiteralIdentifier()
+                                            .WithName(letName))
+                                        .WithName(name))));
                         binding.Alias
                             .IfRight(innerPattern => members.AddRange(
                                 TransformDestructuringLetStatement(context, innerPattern, 
-                                        new AstExpressionPropertyAccessNode(
-                                            new AstExpressionIdentifierLiteralNode(letName), 
-                                            binding.Name))
-                                    .Cast<AstStatementLetNode>()));
+                                    new SyntaxExpressionProperty()
+                                        .WithLeft(new SyntaxExpressionLiteralIdentifier()
+                                            .WithName(letName))
+                                        .WithName(binding.Property))));
                     }
 
                     break;
                 }
-                case AstDestructuringTuplePatternNode tuplePattern:
+                case SyntaxDestructuringTuplePatternNode tuplePattern:
                 {
                     int index = 0;
                     foreach (var alias in tuplePattern.Aliases)
                     {
                         alias
                             .IfLeft(name => members.Add(
-                                new AstStatementLetNode(
-                                    new AstTypeDeclaratorNode(name),
-                                    new AstExpressionMemberNode(
-                                        new AstExpressionIdentifierLiteralNode(letName), 
-                                        new AstExpressionLiteralNode<double>(index)))));
+                                new SyntaxStatementLetDeclarator()
+                                    .WithDeclarator(new SyntaxTypeDeclarator()
+                                        .WithName(name))
+                                    .WithExpression(new SyntaxExpressionMember()
+                                        .WithCallee(new SyntaxExpressionLiteralIdentifier().WithName(letName))
+                                        .WithIndex(new SyntaxExpressionLiteralDouble().WithValue(index)))));
                         alias
                             .IfRight(innerPattern => members.AddRange(
                                 TransformDestructuringLetStatement(context, innerPattern, 
-                                        new AstExpressionMemberNode(
-                                            new AstExpressionIdentifierLiteralNode(letName), 
-                                            new AstExpressionLiteralNode<double>(index)))
-                                    .Cast<AstStatementLetNode>()));
+                                    new SyntaxExpressionMember()
+                                        .WithCallee(new SyntaxExpressionLiteralIdentifier().WithName(letName))
+                                        .WithIndex(new SyntaxExpressionLiteralDouble().WithValue(index)))));
 
                         index += 1;
                     }

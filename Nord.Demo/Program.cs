@@ -4,6 +4,7 @@ using System.Diagnostics.Contracts;
 using Newtonsoft.Json;
 using Nord.Compiler;
 using Nord.Compiler.Ast;
+using Nord.Compiler.Generated.Ast;
 using Nord.Compiler.Lexer;
 using Nord.Compiler.Parser;
 using Nord.Compiler.Pass;
@@ -30,7 +31,7 @@ namespace Nord.Demo
                         {
                             Console.WriteLine("AST:");
                             Console.WriteLine(serializer.Serialize(value));
-                            var context = new Context(value as AstNode);
+                            var context = new Context(value as SyntaxNode);
                             var transformed = context.Require<HirTransformerPass>();
                             Console.WriteLine("HIR:");
                             Console.WriteLine(serializer.Serialize(transformed));
@@ -41,7 +42,7 @@ namespace Nord.Demo
                             {
                                 Console.WriteLine("AST:");
                                 Console.WriteLine(JsonConvert.SerializeObject(value, Formatting.Indented));
-                                var context = new Context(value as AstNode);
+                                var context = new Context(value as SyntaxNode);
                                 var transformed = context.Require<HirTransformerPass>();
                                 Console.WriteLine("HIR:");
                                 Console.WriteLine(JsonConvert.SerializeObject(transformed, Formatting.Indented));
