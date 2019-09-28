@@ -52,6 +52,8 @@ namespace Nord.Generator.Generators
             // Generate basic usings
             var usingSystem = generator.NamespaceImportDeclaration("System");
             var usingCollections = generator.NamespaceImportDeclaration("System.Collections.Generic");
+            var usingIo = generator.NamespaceImportDeclaration("System.IO");
+            var usingBinary = generator.NamespaceImportDeclaration("System.Runtime.Serialization.Formatters.Binary");
             var usingLanguageExt = generator.NamespaceImportDeclaration("LanguageExt");
             var usingAst = generator.NamespaceImportDeclaration("Nord.Compiler.Ast");
             var usedModels = new List<SyntaxNodeModel>();
@@ -83,88 +85,26 @@ namespace Nord.Generator.Generators
             }
 
             // Generate copy method
-            var copyDeclaration = (MethodDeclarationSyntax) generator.MethodDeclaration(
-                "Copy");
-            copyDeclaration = parentName.Match(pn =>
-                    copyDeclaration
-                        .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
-                        .AddModifiers(SyntaxFactory.Token(SyntaxKind.OverrideKeyword)),
-                () => copyDeclaration
-                    .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
-                    .AddModifiers(SyntaxFactory.Token(SyntaxKind.VirtualKeyword)));
-            copyDeclaration = copyDeclaration.WithReturnType(
-                (TypeSyntax) generator.IdentifierName("S"));
-            copyDeclaration = copyDeclaration.AddTypeParameterListParameters(SyntaxFactory.TypeParameter("S"));
             if (parentName.IsNone)
             {
-                copyDeclaration = copyDeclaration.AddConstraintClauses(SyntaxFactory.TypeParameterConstraintClause("S")
-                    .AddConstraints(SyntaxFactory.TypeConstraint(SyntaxFactory.IdentifierName(model.GetBase(models).GetClassName())))
-                    .AddConstraints(SyntaxFactory.ConstructorConstraint()));
-            }
-            var copyBody = SyntaxFactory.Block();
-            copyBody = parentName.Match(
-                pn => copyBody.AddStatements(
-                    (StatementSyntax) generator.LocalDeclarationStatement(
-                        "copy",
-                        SyntaxFactory.BinaryExpression(
-                            SyntaxKind.AsExpression,
-                            SyntaxFactory.InvocationExpression(
-                                SyntaxFactory.MemberAccessExpression(
-                                    SyntaxKind.SimpleMemberAccessExpression,
-                                    (ExpressionSyntax) generator.BaseExpression(),
-                                    SyntaxFactory.GenericName("Copy")
-                                        .AddTypeArgumentListArguments(SyntaxFactory.IdentifierName("S"))
-                                )
-                            ),
-                        SyntaxFactory.IdentifierName(className)
-                        )
-                    )
-                ),
-                () => copyBody.AddStatements(
-                    (StatementSyntax) generator.LocalDeclarationStatement(
-                        "copy",
-                        generator.CastExpression(
-                            generator.IdentifierName("S"),
-                            generator.ObjectCreationExpression(
-                                SyntaxFactory.IdentifierName("S")
-                            )
-                        )
-                    )
-                ));
-            foreach (var parameter in model.Parameters)
-            {
-                copyBody = copyBody.AddStatements(
-                    (StatementSyntax) generator.ExpressionStatement(
-                        SyntaxFactory.AssignmentExpression(
-                            SyntaxKind.SimpleAssignmentExpression,
-                            SyntaxFactory.MemberAccessExpression(
-                                SyntaxKind.SimpleMemberAccessExpression,
-                                (ExpressionSyntax) generator.IdentifierName("copy"),
-                                (SimpleNameSyntax) generator.IdentifierName(parameter.Key.Pascalize())
-                            ),
-                            SyntaxFactory.MemberAccessExpression(
-                                SyntaxKind.SimpleMemberAccessExpression,
-                                (ExpressionSyntax) generator.ThisExpression(),
-                                (SimpleNameSyntax) generator.IdentifierName(parameter.Key.Pascalize())
-                            )
-                        )
-                    )
-                );
+                var copyDeclarationText = @"
+                    public T Copy<T>() where T: SyntaxNode
+                    {
+                         using (var ms = new MemoryStream())
+                         {
+                               var formatter = new BinaryFormatter();
+                               formatter.Serialize(ms, this);
+                               ms.Position = 0;
+
+                               return (T)formatter.Deserialize(ms);
+                         }
+                    }
+                ";
+                var copyDeclarationParsed = CSharpSyntaxTree.ParseText(copyDeclarationText);
+                var copyDeclaration = (MemberDeclarationSyntax)copyDeclarationParsed.GetRoot().ChildNodes().First();
+                classNode = classNode.AddMembers(copyDeclaration);   
             }
 
-            copyBody = copyBody.AddStatements(
-                (StatementSyntax) generator.ReturnStatement(
-                    SyntaxFactory.BinaryExpression(
-                        SyntaxKind.AsExpression,
-                        SyntaxFactory.IdentifierName("copy"),
-                        SyntaxFactory.IdentifierName("S")
-                    )
-                )
-            );
-
-            copyDeclaration = copyDeclaration.WithBody(copyBody);
-            classNode = classNode.AddMembers(copyDeclaration);
-            
             // Generate with methods
             foreach (var parameter in model.Parameters)
             {
@@ -245,6 +185,8 @@ namespace Nord.Generator.Generators
             var compilationUnit = (CompilationUnitSyntax)generator.CompilationUnit();
             compilationUnit = compilationUnit.AddUsings((UsingDirectiveSyntax) usingSystem);
             compilationUnit = compilationUnit.AddUsings((UsingDirectiveSyntax) usingCollections);
+            compilationUnit = compilationUnit.AddUsings((UsingDirectiveSyntax) usingIo);
+            compilationUnit = compilationUnit.AddUsings((UsingDirectiveSyntax) usingBinary);
             compilationUnit = compilationUnit.AddUsings((UsingDirectiveSyntax) usingLanguageExt);
             compilationUnit = compilationUnit.AddUsings((UsingDirectiveSyntax) usingAst);
             foreach (var usedNamespace in usedModels.Select(um => um.GetNamespace(models)))

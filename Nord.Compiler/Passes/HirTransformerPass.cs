@@ -39,7 +39,7 @@ namespace Nord.Compiler.Pass
                     return TransformStatement(context, statementNode);
             }
             
-            return new SyntaxNode[] { DeepClone(node) };
+            return new[] { DeepClone(node) };
         } 
         
         private SyntaxNode[] TransformStatement(Context context, SyntaxStatement node)
@@ -50,7 +50,6 @@ namespace Nord.Compiler.Pass
                 {
                     return TransformDestructuringLetStatement(context, letDestructuring.Pattern, letDestructuring.Expression)
                         .Cast<SyntaxNode>().ToArray();
-                    break;
                 }
                 case SyntaxStatementTopLevel topLevelNode:
                 {
@@ -71,7 +70,7 @@ namespace Nord.Compiler.Pass
                 }
             }
 
-            return new SyntaxStatement[] { DeepClone(node) };
+            return new[] { DeepClone(node) };
         }
 
         private SyntaxStatementLet[] TransformDestructuringLetStatement(Context context, SyntaxDestructuringPattern pattern,
@@ -120,7 +119,7 @@ namespace Nord.Compiler.Pass
                                     .WithExpression(new SyntaxExpressionProperty()
                                         .WithLeft(new SyntaxExpressionLiteralIdentifier()
                                             .WithName(letName))
-                                        .WithName(name))));
+                                        .WithName(binding.Property))));
                         binding.Alias
                             .IfRight(innerPattern => members.AddRange(
                                 TransformDestructuringLetStatement(context, innerPattern, 
@@ -128,6 +127,17 @@ namespace Nord.Compiler.Pass
                                         .WithLeft(new SyntaxExpressionLiteralIdentifier()
                                             .WithName(letName))
                                         .WithName(binding.Property))));
+
+                        if (binding.Alias.IsBottom)
+                        {
+                            members.Add(
+                                new SyntaxStatementLetDeclarator()
+                                    .WithDeclarator(new SyntaxTypeDeclarator().WithName(binding.Property))
+                                    .WithExpression(new SyntaxExpressionProperty()
+                                        .WithLeft(new SyntaxExpressionLiteralIdentifier()
+                                            .WithName(letName))
+                                        .WithName(binding.Property)));
+                        }
                     }
 
                     break;

@@ -6,6 +6,7 @@ using Nord.Compiler.Ast;
 using Nord.Compiler.Generated.Ast.Nodes;
 using Nord.Compiler.Generated.Ast.StatementLets;
 using Nord.Compiler.Generated.Ast.Statements;
+using Nord.Compiler.Generated.Ast.StatementUses;
 using Nord.Compiler.Generated.Ast.Types;
 using Nord.Compiler.Lexer;
 using Superpower;
@@ -154,9 +155,13 @@ namespace Nord.Compiler.Parser
                     .Select(dp => (Either<string, SyntaxDestructuringPattern>) dp))
             from @from in Token.EqualTo(TokenType.FromKeyword)
             from path in Token.EqualTo(TokenType.String)
-            select new SyntaxStatementUse()
-                .WithAlias(alias)
-                .WithFrom(path.ToStringValue());
+            select alias
+                .Match(pattern => new SyntaxStatementUseDestructuring()
+                    .WithPattern(pattern)
+                    .WithFrom(path.ToStringValue()),
+                    name => new SyntaxStatementUseAlias()
+                    .WithAlias(name)
+                    .WithFrom(path.ToStringValue()));
         
         public static TokenListParser<TokenType, SyntaxStatementTopLevel> TopLevelStatement { get; } =
             from modifiers in Modifiers

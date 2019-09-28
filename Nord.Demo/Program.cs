@@ -26,31 +26,44 @@ namespace Nord.Demo
                 {
                     if (Parsers.TryParse(line, out var value, out var error, out var errorPosition))
                     {
-                        var serializer = new SerializerBuilder().Build();
                         try
                         {
                             Console.WriteLine("AST:");
-                            Console.WriteLine(serializer.Serialize(value));
+                            Console.WriteLine(ObjectDumper.Dump(value));
                             var context = new Context(value as SyntaxNode);
                             var transformed = context.Require<HirTransformerPass>();
                             Console.WriteLine("HIR:");
-                            Console.WriteLine(serializer.Serialize(transformed));
+                            Console.WriteLine(ObjectDumper.Dump(transformed));
                         }
-                        catch (Exception ex)
+                        catch (Exception)
                         {
+                            var serializer = new SerializerBuilder()
+                                .Build();
                             try
                             {
                                 Console.WriteLine("AST:");
-                                Console.WriteLine(JsonConvert.SerializeObject(value, Formatting.Indented));
+                                Console.WriteLine(serializer.Serialize(value));
                                 var context = new Context(value as SyntaxNode);
                                 var transformed = context.Require<HirTransformerPass>();
                                 Console.WriteLine("HIR:");
-                                Console.WriteLine(JsonConvert.SerializeObject(transformed, Formatting.Indented));
+                                Console.WriteLine(serializer.Serialize(transformed));
                             }
-                            catch (Exception nestedEx)
+                            catch (Exception)
                             {
-                                Console.WriteLine("There was a problem with serialization");
-                                throw nestedEx;
+                                try
+                                {
+                                    Console.WriteLine("AST:");
+                                    Console.WriteLine(JsonConvert.SerializeObject(value, Formatting.Indented));
+                                    var context = new Context(value as SyntaxNode);
+                                    var transformed = context.Require<HirTransformerPass>();
+                                    Console.WriteLine("HIR:");
+                                    Console.WriteLine(JsonConvert.SerializeObject(transformed, Formatting.Indented));
+                                }
+                                catch (Exception nestedEx)
+                                {
+                                    Console.WriteLine("There was a problem with serialization");
+                                    throw nestedEx;
+                                }
                             }
                         }
                     }

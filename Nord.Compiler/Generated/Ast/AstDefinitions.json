@@ -105,7 +105,6 @@
         "StatementUse": {
             "parent": "Statement",
             "parameters": {
-                "alias": "Either<string, SyntaxDestructuringPattern>",
                 "from": "string"
             }
         },

@@ -107,7 +107,6 @@ public static class Parsers
         from alias in DestructuringPatternOrIdentifier
         select alias;
 
-
     public static TokenListParser<TokenType, SyntaxDestructuringPatternBindingElement> DestructuringBindingElement { get; }
         =
         from name in Token.EqualTo(TokenType.Identifier)
