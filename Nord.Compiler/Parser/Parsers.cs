@@ -43,6 +43,7 @@ public static class Parsers
             .WithAliases(names)
             .WithRest(null);
     
+    //TODO: Seems to be not working properly, three dots are not parsed
     public static TokenListParser<TokenType, SyntaxDestructuringArrayPattern> DestructuringArrayElementsWithRest { get; } =
         from names in DestructuringPatternOrIdentifier.ManyDelimitedBy(Token.EqualTo(TokenType.Comma))
         from comma in Token.EqualTo(TokenType.Comma)
