@@ -17,13 +17,11 @@ namespace Nord.Generator.Generators
 {
     public class SyntaxNodesGenerator
     {
-        public readonly static string AstClassesDirectory = Path.GetFullPath(Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "../../../../Nord.Compiler/Generated/Ast/"));
-
         public static void GenerateSyntaxNodes(List<SyntaxNodeModel> models)
         {
             // Clear the folder
-            var directories = Directory.GetDirectories(AstClassesDirectory).ToList();
-            var files = Directory.GetFiles(AstClassesDirectory).Where(f => !f.Contains("AstDefinitions")).ToList();
+            var directories = Directory.GetDirectories(Config.AstClassesDirectory).ToList();
+            var files = Directory.GetFiles(Config.AstClassesDirectory).Where(f => !f.Contains("AstDefinitions")).ToList();
             directories.ForEach(directory => files.AddRange(Directory.GetFiles(directory)));
             files.ForEach(File.Delete);
             directories.ForEach(Directory.Delete);
@@ -104,6 +102,9 @@ namespace Nord.Generator.Generators
                 var copyDeclaration = (MemberDeclarationSyntax)copyDeclarationParsed.GetRoot().ChildNodes().First();
                 classNode = classNode.AddMembers(copyDeclaration);   
             }
+            
+            // Generate children method
+            
 
             // Generate with methods
             foreach (var parameter in model.Parameters)
@@ -204,8 +205,8 @@ namespace Nord.Generator.Generators
             
             // Write to file
             var fileDirectory = parentName.IsSome
-                ? Path.Combine(AstClassesDirectory, parentName.ValueUnsafe().Pascalize().Pluralize())
-                : AstClassesDirectory;
+                ? Path.Combine(Config.AstClassesDirectory, parentName.ValueUnsafe().Pascalize().Pluralize())
+                : Config.AstClassesDirectory;
             var filePath = Path.Combine(fileDirectory, className);
             
             // Log to console
